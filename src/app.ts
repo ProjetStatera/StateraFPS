@@ -20,10 +20,11 @@ class App {
         //create camera + light + Player
         var camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero(), this._scene);
         camera.attachControl(this._canvas, true);
-        
+
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 0), this._scene);
 
         this.CreatePlayer();
+        this.CreateMap();
 
 
         //**for development: make inspector visible/invisible
@@ -46,11 +47,20 @@ class App {
     //Create the player
     async CreatePlayer():Promise<void>
     {
-        const result = await SceneLoader.ImportMeshAsync("player","./public/models/","Pistol.glb", this._scene);
+        const result = await SceneLoader.ImportMeshAsync("","./models/","Pistol.glb", this._scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
     }
+
+    async CreateMap():Promise<void>
+    {
+        const result = await SceneLoader.ImportMeshAsync("","./models/","Map.glb", this._scene);
+
+        let env = result.meshes[0];
+        let allMeshes = env.getChildMeshes();
+    }
+
 
     //set up the canvas
     private _createCanvas(): HTMLCanvasElement {
