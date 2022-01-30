@@ -4,7 +4,8 @@
   "description": "Games on web 2022",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack",
+    "start": "webpack-dev-server --port 8080"
   },
   "repository": {
     "type": "git",
