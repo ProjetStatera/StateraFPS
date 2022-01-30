@@ -1,0 +1,29 @@
+{
+  "name": "statera",
+  "version": "1.0.0",
+  "description": "Games on web 2022",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ProjetStatera/StateraFPS.git"
+  },
+  "author": "Adem BEN JABRIA, Valentin CHARLES",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ProjetStatera/StateraFPS/issues"
+  },
+  "homepage": "https://github.com/ProjetStatera/StateraFPS#readme",
+  "devDependencies": {
+    "@babylonjs/core": "^4.2.1",
+    "@babylonjs/inspector": "^4.2.1",
+    "html-webpack-plugin": "^5.5.0",
+    "ts-loader": "^9.2.6",
+    "typescript": "^4.5.5",
+    "webpack": "^5.67.0",
+    "webpack-cli": "^4.9.2",
+    "webpack-dev-server": "^4.7.3"
+  }
+}
