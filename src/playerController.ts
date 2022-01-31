@@ -4,4 +4,19 @@ import {PlayerInput} from "./inputController";
 export class Player extends TransformNode{
     public camera: UniversalCamera;
     public scene: Scene;
+    private _input: PlayerInput;
+
+    //Player
+    public mesh: Mesh; //outer collisionbox of player
+
+    //Camera
+    private _camRoot: TransformNode;
+    private _Ytilt: TransformNode;
+
+    //Animations
+    private animation: AnimationGroup;
+
+     //An array with all animation keys
+    
+
 }
