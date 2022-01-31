@@ -17,12 +17,13 @@ class App {
         this._engine = new Engine(this._canvas, true);
         this._scene = new Scene(this._engine);
 
-        //create camera + light + Player
+        //create camera + light
         var camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero(), this._scene);
         camera.attachControl(this._canvas, true);
 
-        var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 0), this._scene);
+        var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 1), this._scene); //white light
 
+        //generate map + player
         this.CreatePlayer();
         this.CreateMap();
 
@@ -53,6 +54,7 @@ class App {
         let allMeshes = env.getChildMeshes();
     }
 
+    //Create the map
     async CreateMap():Promise<void>
     {
         const result = await SceneLoader.ImportMeshAsync("","./models/","Map.glb", this._scene);
