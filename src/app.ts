@@ -9,20 +9,19 @@ import { Engine, ArcRotateCamera, HemisphericLight, Scene, Vector3, Mesh, Color3
 class App {
     // General Entire Application
     private _scene: Scene;
-    private _canvas: HTMLCanvasElement;
+    public _canvas: HTMLCanvasElement;
     private _engine: Engine;
     private fps: FirstPersonController
     
     constructor() {
         this._canvas = this._createCanvas();
-
         // initialize babylon scene and engine
         this._engine = new Engine(this._canvas, true);
         this._scene = new Scene(this._engine);
 
         //create camera + light
-        var camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero(), this._scene);
-        camera.attachControl(this._canvas, true);
+        //var camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero(), this._scene);
+        //camera.attachControl(this._canvas, true);
 
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 1), this._scene); //white light
 
@@ -31,6 +30,7 @@ class App {
         this.CreateMap();
 
         this.goToGame();
+        this._scene.debugLayer.show();
 
 
         //**for development: make inspector visible/invisible
@@ -61,7 +61,7 @@ class App {
 
     private goToGame()
     {
-        this.fps = new FirstPersonController(this._scene);
+        this.fps = new FirstPersonController(this._scene, this._canvas);
     }
 
 
