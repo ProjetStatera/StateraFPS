@@ -2,6 +2,8 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders";
 
+import { FirstPersonController } from "./FirstPersonController";
+
 import { Engine, ArcRotateCamera, HemisphericLight, Scene, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager } from "@babylonjs/core";
 
 class App {
@@ -9,6 +11,7 @@ class App {
     private _scene: Scene;
     private _canvas: HTMLCanvasElement;
     private _engine: Engine;
+    private fps: FirstPersonController
     
     constructor() {
         this._canvas = this._createCanvas();
@@ -24,8 +27,10 @@ class App {
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 1), this._scene); //white light
 
         //generate map + player
-        this.CreatePlayer();
+        //this.CreatePlayer();
         this.CreateMap();
+
+        this.goToGame();
 
 
         //**for development: make inspector visible/invisible
@@ -45,15 +50,6 @@ class App {
         });
     }
 
-    //Create the player
-    async CreatePlayer():Promise<void>
-    {
-        const result = await SceneLoader.ImportMeshAsync("","./models/","Pistol.glb", this._scene);
-
-        let env = result.meshes[0];
-        let allMeshes = env.getChildMeshes();
-    }
-
     //Create the map
     async CreateMap():Promise<void>
     {
@@ -61,6 +57,11 @@ class App {
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
+    }
+
+    private goToGame()
+    {
+        this.fps = new FirstPersonController(this._scene);
     }
 
 
