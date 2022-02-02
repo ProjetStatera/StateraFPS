@@ -32,6 +32,11 @@ class App {
             }
         }
 
+        //stable framerate for using gravity
+        const framesPerSecond = 60;
+        const gravity = -9.81; //earth one
+        this._scene.gravity = new Vector3(0, gravity/framesPerSecond, 0);
+        this._scene.collisionsEnabled = true;
 
         //Create the light
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 1), this._scene); //white light
@@ -46,7 +51,7 @@ class App {
         this._scene.debugLayer.show();
 
 
-        //**for development: make inspector visible/invisible
+        //for development: make inspector visible/invisible
         window.addEventListener("keydown", (ev) => {
             //Shift+Ctrl+Alt+I
             if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
@@ -70,6 +75,12 @@ class App {
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
+        
+        //hitbox
+        allMeshes.map(allMeshes=>
+        {
+            allMeshes.checkCollisions = true;
+        })
     }
 
     //launch FirstPersonController.ts
