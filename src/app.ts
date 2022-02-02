@@ -14,22 +14,23 @@ class App {
     private fps: FirstPersonController
     
     constructor() {
+        //assign the canvas
         this._canvas = this._createCanvas();
+
         // initialize babylon scene and engine
         this._engine = new Engine(this._canvas, true);
         this._scene = new Scene(this._engine);
 
-        //create camera + light
-        //var camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero(), this._scene);
-        //camera.attachControl(this._canvas, true);
-
+        //Create the light
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 1), this._scene); //white light
 
-        //generate map + player
-        //this.CreatePlayer();
+        //Generate the map mesh
         this.CreateMap();
 
+        //launch FirstPersonController.ts
         this.goToGame();
+
+        //debugger 
         this._scene.debugLayer.show();
 
 

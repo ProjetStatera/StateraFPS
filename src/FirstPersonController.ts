@@ -1,4 +1,4 @@
-import { SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools } from "@babylonjs/core";
+import { Space, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4 } from "@babylonjs/core";
 import { application } from "express";
 import {PlayerInput} from "./inputController";
 
@@ -36,9 +36,11 @@ export class FirstPersonController{
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
         env.parent = this.camera;
-        env.rotation = Vector3.Zero();
-        env.scaling = new Vector3(1,1,1);
-        env.position = new Vector3(0,0,0);
+        env.position = new Vector3(0.3,-0.6,1.7);
+        //env.rotation = Vector3.Zero();
+        //env.rotationQuaternion = new Quaternion(0, 180, 0, 0);
+        env.scaling = new Vector3(3,3,-3);
+        env.rotation = new Vector3(0,2,0);
     }
 
 }
