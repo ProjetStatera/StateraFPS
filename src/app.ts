@@ -17,9 +17,21 @@ class App {
         //assign the canvas
         this._canvas = this._createCanvas();
 
-        // initialize babylon scene and engine
+        // initialize babylon + disable pointer scene and engine
         this._engine = new Engine(this._canvas, true);
         this._scene = new Scene(this._engine);
+        this._scene.onPointerDown = (evt)=>
+        {
+            if(evt.button === 0 )//left click
+            {
+                this._engine.enterPointerlock();
+            } 
+            if(evt.button === 1)//middle click
+            {
+                this._engine.exitPointerlock();
+            }
+        }
+
 
         //Create the light
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 1), this._scene); //white light
@@ -60,6 +72,7 @@ class App {
         let allMeshes = env.getChildMeshes();
     }
 
+    //launch FirstPersonController.ts
     private goToGame()
     {
         this.fps = new FirstPersonController(this._scene, this._canvas);
