@@ -68,7 +68,9 @@ class App {
         });
     }
 
-    //Create the map
+    /**
+     * Create the map
+     */
     async CreateMap():Promise<void>
     {
         const result = await SceneLoader.ImportMeshAsync("","./models/","Map.glb", this._scene);
@@ -83,14 +85,19 @@ class App {
         })
     }
 
-    //launch FirstPersonController.ts
+    /**
+     * launch FirstPersonController.ts
+     */
     private goToGame()
     {
         this.fps = new FirstPersonController(this._scene, this._canvas);
     }
 
 
-    //set up the canvas
+    /**
+     * set up the canvas
+     * @returns this canvas
+     */
     private _createCanvas(): HTMLCanvasElement {
 
         //Commented out for development
