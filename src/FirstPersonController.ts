@@ -1,11 +1,19 @@
-import { Animation, Space, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes } from "@babylonjs/core";
+import { Animation, Space, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int } from "@babylonjs/core";
 
-export class FirstPersonController {
+export class firstPersonController {
     public camera: FreeCamera;
     public scene: Scene;
     public _canvas: HTMLCanvasElement;
     public animation: AnimationGroup;
     public mesh: AbstractMesh;
+    public currentWeapon: int; // 1=pistol, 2=assault rifle, 
+
+    //state
+
+
+    public idle: Boolean;
+    public shoot: Boolean;
+
 
     constructor(scene: Scene, canvas: HTMLCanvasElement) {
         this.scene = scene;
@@ -54,13 +62,12 @@ export class FirstPersonController {
                 case KeyboardEventTypes.KEYDOWN:
                     switch (kbInfo.event.key) {
                         case "a":
-                            this.scene.animationGroups[0].start(true,1.0,0.3,1);
-                            this.scene.animationGroups[0].goToFrame(0.3);
-                            //console.log("KEY DOWN: ", kbInfo.event.key)
+                            this.animationIdle();
                             break;
                         case "b":
                             this.scene.animationGroups[0].stop();
                             this.scene.animationGroups[0].start(false,1.0,0,0.3);
+                            break;
                     }
                     break;
             }
@@ -92,4 +99,12 @@ export class FirstPersonController {
             animationGroups: result.animationGroups
         }
     }
+
+    animationIdle()
+    {
+        this.scene.animationGroups[0].stop();
+        this.scene.animationGroups[0].start(true,0.3,7.8,8.8);
+    }
+
+    
 }

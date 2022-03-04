@@ -2,7 +2,7 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders";
 
-import { FirstPersonController } from "./FirstPersonController";
+import { firstPersonController } from "./firstPersonController";
 
 import { Engine, ArcRotateCamera, HemisphericLight, Scene, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager } from "@babylonjs/core";
 
@@ -11,7 +11,7 @@ class App {
     private _scene: Scene;
     public _canvas: HTMLCanvasElement;
     private _engine: Engine;
-    private fps: FirstPersonController
+    private fps: firstPersonController
     
     constructor() {
         //assign the canvas
@@ -73,7 +73,7 @@ class App {
      */
     async CreateMap():Promise<void>
     {
-        const result = await SceneLoader.ImportMeshAsync("","./models/","Map.glb", this._scene);
+        const result = await SceneLoader.ImportMeshAsync("","./models/","SampleScene.glb", this._scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
@@ -90,7 +90,7 @@ class App {
      */
     private goToGame()
     {
-        this.fps = new FirstPersonController(this._scene, this._canvas);
+        this.fps = new firstPersonController(this._scene, this._canvas);
     }
 
 
