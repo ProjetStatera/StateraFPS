@@ -6,12 +6,17 @@ import { firstPersonController } from "./firstPersonController";
 
 import { Engine, ArcRotateCamera, HemisphericLight, Scene, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager } from "@babylonjs/core";
 
+enum State { START = 0, GAME = 1, LOSE = 2, CUTSCENE = 3}
+
 class App {
     // General Entire Application
     private _scene: Scene;
     public _canvas: HTMLCanvasElement;
     private _engine: Engine;
-    private fps: firstPersonController
+    private fps: firstPersonController;
+
+    //Scene - related
+    private _state: number = 0;
     
     constructor() {
         //assign the canvas

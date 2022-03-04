@@ -27,7 +27,7 @@ export class firstPersonController {
      * create the camera which represents the player (FPS)
      */
     CreateController(): void {
-        this.camera = new FreeCamera("camera", new Vector3(0, -8, 0), this.scene);
+        this.camera = new FreeCamera("camera", new Vector3(0, 2, 0), this.scene);
         this.camera.attachControl(this._canvas, true);
 
         //hitbox + gravity
@@ -52,7 +52,7 @@ export class firstPersonController {
         camera.keysRight = [68];//d
         camera.keysUpward = [32];//space (jump)
         camera.angularSensibility = 1000;
-        camera.speed = 3;
+        camera.speed = 4;
         camera.inertia = 0;
     }
 
@@ -61,7 +61,7 @@ export class firstPersonController {
             switch (kbInfo.type) {
                 case KeyboardEventTypes.KEYDOWN:
                     switch (kbInfo.event.key) {
-                        case "a":
+                        case 'z' || 's' || 'd' || 'q':
                             this.animationIdle();
                             break;
                         case "b":
