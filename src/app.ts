@@ -2,11 +2,11 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders";
 
+import { AdvancedDynamicTexture, StackPanel, Button, TextBlock, Rectangle, Control, Image } from "@babylonjs/gui";
 import { firstPersonController } from "./firstPersonController";
-
 import { Engine, ArcRotateCamera, HemisphericLight, Scene, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager } from "@babylonjs/core";
 
-enum State { START = 0, GAME = 1, LOSE = 2, CUTSCENE = 3}
+enum State { START = 0, GAME = 1, LOSE = 2, CUTSCENE = 3 }
 
 class App {
     // General Entire Application
@@ -14,88 +14,141 @@ class App {
     public _canvas: HTMLCanvasElement;
     private _engine: Engine;
     private fps: firstPersonController;
+    private _gameScene: Scene;
 
     //Scene - related
     private _state: number = 0;
-    
-    constructor() {
-        //assign the canvas
-        this._canvas = this._createCanvas();
 
-        // initialize babylon + disable pointer scene and engine
+    constructor() {
+        //assign the canvas and engine
+        this._canvas = this._createCanvas();
         this._engine = new Engine(this._canvas, true);
         this._scene = new Scene(this._engine);
-        this._scene.onPointerDown = (evt)=>
-        {
-            if(evt.button === 0 )//left click
-            {
-                this._engine.enterPointerlock();
-            } 
-            if(evt.button === 1)//middle click
-            {
-                this._engine.exitPointerlock();
-            }
-        }
 
-        //stable framerate for using gravity
-        const framesPerSecond = 60;
-        const gravity = -9.81; //earth one
-        this._scene.gravity = new Vector3(0, gravity/framesPerSecond, 0);
-        this._scene.collisionsEnabled = true;
-
-        //Create the light
+        var camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero(), this._scene);
+        camera.attachControl(this._canvas, true);
+        this._scene.debugLayer.show(); //debugger
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 1), this._scene); //white light
 
-        //Generate the map mesh
-        this.CreateMap();
-
-        //launch FirstPersonController.ts
-        this.goToGame();
-
-        //debugger 
-        this._scene.debugLayer.show();
+        this.main();
 
 
-        //for development: make inspector visible/invisible
-        window.addEventListener("keydown", (ev) => {
-            //Shift+Ctrl+Alt+I
-            if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
-                if (this._scene.debugLayer.isVisible()) {
-                    this._scene.debugLayer.hide();
-                } else {
-                    this._scene.debugLayer.show();
-                }
+    }
+
+    private async main(): Promise<void> {
+        await this.goToStart();
+    
+        // Register a render loop to repeatedly render the scene
+        this._engine.runRenderLoop(() => {
+            switch (this._state) {
+                case State.START:
+                    this._scene.render();
+                    break;
+                case State.CUTSCENE:
+                    this._scene.render();
+                    break;
+                case State.GAME:
+                    this._scene.render();
+                    break;
+                case State.LOSE:
+                    this._scene.render();
+                    break;
+                default: break;
             }
         });
-        // run the main render loop
-        this._engine.runRenderLoop(() => {
-            this._scene.render();
+    
+        //resize if the screen is resized/rotated
+        window.addEventListener('resize', () => {
+            this._engine.resize();
         });
+    }
+
+    private async goToStart() {
+        this._engine.displayLoadingUI();
+        this._scene.detachControl(); //dont detect any inputs from this ui while the game is loading
+        let scene = new Scene(this._engine);
+        scene.clearColor = new Color4(0, 0, 0, 1);
+        let camera = new FreeCamera("camera1", new Vector3(0, 0, 0), scene);
+        camera.setTarget(Vector3.Zero());
+
+        //create a fullscreen ui for all of our GUI elements
+        const guiMenu = AdvancedDynamicTexture.CreateFullscreenUI("UI");
+        guiMenu.idealHeight = 1080; //fit our fullscreen ui to this height
+
+        //create a simple button
+        const startBtn = Button.CreateSimpleButton("start", "PLAY");
+        startBtn.width = 1;
+        startBtn.height = "150px";
+        startBtn.color = "white";
+        startBtn.top = "-14px";
+        startBtn.thickness = 0;
+        startBtn.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
+        guiMenu.addControl(startBtn);
+
+        //this handles interactions with the start button attached to the scene
+        startBtn.onPointerDownObservable.add(() => {
+            this.goToGame();
+            scene.detachControl(); //observables disabled
+        });
+        //--SCENE FINISHED LOADING--
+        await scene.whenReadyAsync();
+        this._engine.hideLoadingUI();
+        //lastly set the current state to the start state and set the scene to the start scene
+        this._scene.dispose();
+        this._scene = scene;
+        this._state = State.GAME;
+
     }
 
     /**
      * Create the map
      */
-    async CreateMap():Promise<void>
-    {
-        const result = await SceneLoader.ImportMeshAsync("","./models/","SampleScene.glb", this._scene);
+    async CreateMap(): Promise<void> {
+        const result = await SceneLoader.ImportMeshAsync("", "./models/", "SampleScene.glb", this._scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
-        
+
         //hitbox
-        allMeshes.map(allMeshes=>
-        {
+        allMeshes.map(allMeshes => {
             allMeshes.checkCollisions = true;
         })
+        this._engine.hideLoadingUI();
     }
 
     /**
      * launch FirstPersonController.ts
      */
-    private goToGame()
-    {
-        this.fps = new firstPersonController(this._scene, this._canvas);
+    private goToGame() {
+        let scene = new Scene(this._engine);
+        this._gameScene = scene;
+        this._scene.detachControl();
+        this._scene.debugLayer.show();
+
+        this.fps = new firstPersonController(this._gameScene, this._canvas);
+        this._gameScene.onPointerDown = (evt) => {
+            if (evt.button === 0)//left click
+            {
+                this._engine.enterPointerlock();
+            }
+            if (evt.button === 1)//middle click
+            {
+                this._engine.exitPointerlock();
+            }
+        }
+        //stable framerate for using gravity
+        const framesPerSecond = 60;
+        const gravity = -9.81; //earth one
+        this._gameScene.gravity = new Vector3(0, gravity / framesPerSecond, 0);
+        this._gameScene.collisionsEnabled = true;
+        //get rid of start scene, switch to gamescene and change states
+        //get rid of start scene, switch to gamescene and change states
+        this._scene.dispose();
+        this._state = State.GAME;
+        this._scene = scene;
+        this._engine.hideLoadingUI();
+        //the game is ready, attach control back
+        this._scene.attachControl();
     }
 
 

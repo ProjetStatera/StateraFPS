@@ -1,19 +1,15 @@
 import { Animation, Space, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int } from "@babylonjs/core";
 
+enum animationState { IDLE = 0, WALK = 1, RUN = 2, AIM = 3, FIRE = 4, RELOAD = 5}
+
 export class firstPersonController {
     public camera: FreeCamera;
     public scene: Scene;
     public _canvas: HTMLCanvasElement;
     public animation: AnimationGroup;
     public mesh: AbstractMesh;
-    public currentWeapon: int; // 1=pistol, 2=assault rifle, 
-
-    //state
-
-
-    public idle: Boolean;
-    public shoot: Boolean;
-
+    public currentWeapon: int; // 1=pistol, 2=assault rifle,
+    public currentAnimationState: int;
 
     constructor(scene: Scene, canvas: HTMLCanvasElement) {
         this.scene = scene;
@@ -37,6 +33,10 @@ export class firstPersonController {
         //define the camera as player (on his hitbox)
         this.camera.ellipsoid = new Vector3(1, 1, 1);
 
+        this.camera.minZ = 0.45;
+        this.camera.speed = 0.75;
+        this.camera.angularSensibility = 4000;
+
         //Movements
         this.ApplyMovementRules(this.camera);
     }
@@ -46,11 +46,11 @@ export class firstPersonController {
      * @param camera this camera
      */
     ApplyMovementRules(camera: FreeCamera): void {
-        camera.keysUp = [90];//z
-        camera.keysDown = [83];//s
-        camera.keysLeft = [81]//q
-        camera.keysRight = [68];//d
-        camera.keysUpward = [32];//space (jump)
+        camera.keysUp.push(90);//z
+        camera.keysDown.push(83);//s
+        camera.keysLeft.push(81)//q
+        camera.keysRight.push(68);//d
+        camera.keysUpward.push(32);//space (jump)
         camera.angularSensibility = 1000;
         camera.speed = 4;
         camera.inertia = 0;
@@ -61,10 +61,13 @@ export class firstPersonController {
             switch (kbInfo.type) {
                 case KeyboardEventTypes.KEYDOWN:
                     switch (kbInfo.event.key) {
-                        case 'z' || 's' || 'd' || 'q':
+                        case 'z':
+                        case 's':
+                        case 'q':
+                        case 'd':
                             this.animationIdle();
                             break;
-                        case "b":
+                        case "shift":
                             this.scene.animationGroups[0].stop();
                             this.scene.animationGroups[0].start(false,1.0,0,0.3);
                             break;
@@ -73,7 +76,6 @@ export class firstPersonController {
             }
         })
     }
-
 
     /**
      * create the player mesh
@@ -87,7 +89,6 @@ export class firstPersonController {
         env.position = new Vector3(0.3, -0.6, 1.7);
         env.scaling = new Vector3(3, 3, -3);
         env.rotation = new Vector3(0, 3, 0);
-        //this.mesh = env;
 
         allMeshes.map(allMeshes => {
             allMeshes.checkCollisions = true;
@@ -106,5 +107,5 @@ export class firstPersonController {
         this.scene.animationGroups[0].start(true,0.3,7.8,8.8);
     }
 
-    
+
 }
