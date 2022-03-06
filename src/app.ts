@@ -1,10 +1,12 @@
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders";
+import "@babylonjs/materials"
 
+import { SkyMaterial } from "@babylonjs/materials";
 import { AdvancedDynamicTexture, StackPanel, Button, TextBlock, Rectangle, Control, Image } from "@babylonjs/gui";
 import { firstPersonController } from "./firstPersonController";
-import { Engine, ArcRotateCamera, HemisphericLight, Scene, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager } from "@babylonjs/core";
+import { Engine, ArcRotateCamera, HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager } from "@babylonjs/core";
 
 enum State { START = 0, GAME = 1, LOSE = 2, CUTSCENE = 3 }
 
@@ -31,13 +33,11 @@ class App {
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 1), this._scene); //white light
 
         this.main();
-
-
     }
 
     private async main(): Promise<void> {
         await this.goToStart();
-    
+
         // Register a render loop to repeatedly render the scene
         this._engine.runRenderLoop(() => {
             switch (this._state) {
@@ -56,7 +56,7 @@ class App {
                 default: break;
             }
         });
-    
+
         //resize if the screen is resized/rotated
         window.addEventListener('resize', () => {
             this._engine.resize();
@@ -104,6 +104,23 @@ class App {
      * Create the map
      */
     async CreateMap(): Promise<void> {
+        var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(0, 1, 0), this._scene); //white light
+        light1.intensity = 2;
+        light1.range = 100;
+
+        // Sky material
+        var skyboxMaterial = new SkyMaterial("skyMaterial", this._scene);
+        skyboxMaterial.backFaceCulling = false;
+        //skyboxMaterial._cachedDefines.FOG = true;
+
+        // Sky mesh (box)
+        var skybox = Mesh.CreateBox("skyBox", 1000.0, this._scene);
+        skybox.material = skyboxMaterial;
+        skyboxMaterial.luminance = 0.1;
+        // Manually set the sun position
+        skyboxMaterial.useSunPosition = true; // Do not set sun position from azimuth and inclination
+        skyboxMaterial.sunPosition = new Vector3(0, 100, 0);
+
         const result = await SceneLoader.ImportMeshAsync("", "./models/", "SampleScene.glb", this._scene);
 
         let env = result.meshes[0];
@@ -113,18 +130,15 @@ class App {
         allMeshes.map(allMeshes => {
             allMeshes.checkCollisions = true;
         })
-        this._engine.hideLoadingUI();
     }
 
     /**
      * launch FirstPersonController.ts
      */
-    private goToGame() {
+    private async goToGame() {
         let scene = new Scene(this._engine);
         this._gameScene = scene;
         this._scene.detachControl();
-        this._scene.debugLayer.show();
-
         this.fps = new firstPersonController(this._gameScene, this._canvas);
         this._gameScene.onPointerDown = (evt) => {
             if (evt.button === 0)//left click
@@ -142,13 +156,14 @@ class App {
         this._gameScene.gravity = new Vector3(0, gravity / framesPerSecond, 0);
         this._gameScene.collisionsEnabled = true;
         //get rid of start scene, switch to gamescene and change states
-        //get rid of start scene, switch to gamescene and change states
         this._scene.dispose();
         this._state = State.GAME;
-        this._scene = scene;
+        this._scene = this._gameScene;
+        this._engine.displayLoadingUI();
+        this.CreateMap();
+        await this._scene.whenReadyAsync();
         this._engine.hideLoadingUI();
-        //the game is ready, attach control back
-        this._scene.attachControl();
+        this._scene.debugLayer.show();
     }
 
 
