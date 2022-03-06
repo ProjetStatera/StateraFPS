@@ -1,4 +1,4 @@
-import { Animation, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int } from "@babylonjs/core";
+import { Animation,PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int } from "@babylonjs/core";
 
 enum animationState { IDLE = 0, WALK = 1, RUN = 2, AIM = 3, FIRE = 4, RELOAD = 5 }
 
@@ -78,33 +78,68 @@ export class firstPersonController {
                 case KeyboardEventTypes.KEYDOWN:
                     switch (kbInfo.event.key) {
                         case 'z':
-                        case 's':
-                        case 'q':
-                        case 'd':
                             this.walk();
+                            break;
+                        case 's':
+                            this.camera.speed = 3;
+                            break;
+                        case 'q':
+                            this.camera.speed = 3;
+                            break;
+                        case 'd':
+                            this.camera.speed = 3;
                             break;
                         case 'Shift':
                             this.run();
+                            break;
+                        case 'Control':
+                            this.sprint();
+                            break;
+                        case 'r':
+                            this.reload();
                             break;
                     }
                     break;
             }
         })
-    }
+        this.scene.onPointerObservable.add((pointerInfo) => {
+            switch (pointerInfo.type) {
+              case PointerEventTypes.POINTERDOWN:
+                this.fire();
+                break;
+            }
+        })}
 
-    private walk()
-    {
+    private walk() {
         this.camera.speed = 3;
         this._currentAnim = this._walk;
         this._animatePlayer();
     }
 
-    private run()
-    {
+    private run() {
         this.camera.speed = 5;
         this._currentAnim = this._run;
         this._animatePlayer();
     }
+
+    private sprint() {
+        this.camera.speed = 5;
+        this._currentAnim = this._run2;
+        this._animatePlayer();
+    }
+
+    private reload(){
+        this.camera.speed = 3;
+        this._currentAnim = this._reload;
+        this._animatePlayer();
+    }
+
+    private fire(){
+        this.camera.speed = 3;
+        this._currentAnim = this._fire;
+        this._fire.play(false);
+    }
+    
 
 
     private async CreatePlayer(): Promise<any> {
@@ -132,6 +167,7 @@ export class firstPersonController {
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
+        this._run2.loopAnimation = true;
         this._setUpAnimations();
         this._animatePlayer();
 
