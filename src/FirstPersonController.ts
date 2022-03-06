@@ -1,4 +1,4 @@
-import { Animation, Space, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int } from "@babylonjs/core";
+import { Animation, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int } from "@babylonjs/core";
 
 enum animationState { IDLE = 0, WALK = 1, RUN = 2, AIM = 3, FIRE = 4, RELOAD = 5 }
 
@@ -34,8 +34,9 @@ export class firstPersonController {
         this._canvas = canvas;
         this.CreateController();
         this.CreatePlayer();
-        
+        this.Animation();
     }
+
 
     /**
      * create the camera which represents the player (FPS)
@@ -71,7 +72,7 @@ export class firstPersonController {
         camera.inertia = 0.1;
     }
 
-    Animation(): void {
+    private Animation(): void {
         this.scene.onKeyboardObservable.add((kbInfo) => {
             switch (kbInfo.type) {
                 case KeyboardEventTypes.KEYDOWN:
@@ -80,11 +81,10 @@ export class firstPersonController {
                         case 's':
                         case 'q':
                         case 'd':
-                            this.animationIdle();
+                            this.walk();
                             break;
-                        case "shift":
-                            this.scene.animationGroups[0].stop();
-                            this.scene.animationGroups[0].start(false, 1.0, 0, 0.3);
+                        case 'Shift':
+                            this.run();
                             break;
                     }
                     break;
@@ -92,7 +92,22 @@ export class firstPersonController {
         })
     }
 
-    async CreatePlayer(): Promise<any> {
+    private walk()
+    {
+        this.camera.speed = 3;
+        this._currentAnim = this._walk;
+        this._animatePlayer();
+    }
+
+    private run()
+    {
+        this.camera.speed = 5;
+        this._currentAnim = this._run;
+        this._animatePlayer();
+    }
+
+
+    private async CreatePlayer(): Promise<any> {
         const result = await SceneLoader.ImportMeshAsync("", "./models/", "FPS.glb", this.scene);
 
         let env = result.meshes[0];
@@ -116,6 +131,9 @@ export class firstPersonController {
         this._walk = this.scene.animationGroups[11];
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
+        this._walk.loopAnimation = true;
+        this._setUpAnimations();
+        this._animatePlayer();
 
         allMeshes.map(allMeshes => {
             allMeshes.checkCollisions = true;
@@ -128,25 +146,15 @@ export class firstPersonController {
         }
     }
 
-
-    private animationIdle() {
-        this.scene.animationGroups[0].stop();
-        //this.scene.animationGroups[0].start(true, 0.3, 7.8, 8.8);
-        this._idle.start(true);
-    }
-
     private _setUpAnimations(): void {
-
         this.scene.stopAllAnimations();
 
         //initialize current and previous
-        this._currentAnim = this._idle;
-        this._prevAnim = this._start;
+        this._currentAnim = this._start;
+        this._prevAnim = this._end;
     }
 
     private _animatePlayer(): void {
-
-        //Animations
         if (this._currentAnim != null && this._prevAnim !== this._currentAnim) {
             this._prevAnim.stop();
             this._currentAnim.play(this._currentAnim.loopAnimation);
