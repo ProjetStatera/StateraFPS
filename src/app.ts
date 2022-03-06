@@ -6,7 +6,7 @@ import "@babylonjs/materials"
 import { SkyMaterial } from "@babylonjs/materials";
 import { AdvancedDynamicTexture, StackPanel, Button, TextBlock, Rectangle, Control, Image } from "@babylonjs/gui";
 import { firstPersonController } from "./firstPersonController";
-import { Engine, ArcRotateCamera, HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager } from "@babylonjs/core";
+import { Engine, ArcRotateCamera,OimoJSPlugin, SpotLight,HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager, StandardMaterial, PBRMaterial, Material } from "@babylonjs/core";
 
 enum State { START = 0, GAME = 1, LOSE = 2, CUTSCENE = 3 }
 
@@ -75,6 +75,27 @@ class App {
         const guiMenu = AdvancedDynamicTexture.CreateFullscreenUI("UI");
         guiMenu.idealHeight = 1080; //fit our fullscreen ui to this height
 
+        //background image
+        const imageRect = new Rectangle("titleContainer");
+        imageRect.width = 0.8;
+        imageRect.thickness = 0;
+        guiMenu.addControl(imageRect);
+
+        const startbg = new Image("startbg", "/sprites/start.jpg");
+        imageRect.addControl(startbg);
+
+        const title = new TextBlock("title", "Statera");
+        title.resizeToFit = true;
+        title.fontFamily = "Ceviche One";
+        title.fontSize = "64px";
+        title.color = "white";
+        title.resizeToFit = true;
+        title.top = "14px";
+        title.width = 0.8;
+        title.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+        title.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+        imageRect.addControl(title);
+
         //create a simple button
         const startBtn = Button.CreateSimpleButton("start", "PLAY");
         startBtn.width = 1;
@@ -105,18 +126,18 @@ class App {
      */
     async CreateMap(): Promise<void> {
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(0, 1, 0), this._scene); //white light
-        light1.intensity = 2;
+        light1.intensity = 1;
         light1.range = 100;
 
         // Sky material
         var skyboxMaterial = new SkyMaterial("skyMaterial", this._scene);
         skyboxMaterial.backFaceCulling = false;
-        //skyboxMaterial._cachedDefines.FOG = true;
 
         // Sky mesh (box)
         var skybox = Mesh.CreateBox("skyBox", 1000.0, this._scene);
         skybox.material = skyboxMaterial;
-        skyboxMaterial.luminance = 0.1;
+        skyboxMaterial.luminance = 1;
+
         // Manually set the sun position
         skyboxMaterial.useSunPosition = true; // Do not set sun position from azimuth and inclination
         skyboxMaterial.sunPosition = new Vector3(0, 100, 0);
@@ -125,6 +146,8 @@ class App {
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
+
+        this._scene.getTextureByUniqueID(267).level = 0;
 
         //hitbox
         allMeshes.map(allMeshes => {

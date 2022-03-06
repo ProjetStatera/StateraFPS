@@ -1,4 +1,4 @@
-import { Animation,PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int } from "@babylonjs/core";
+import { Animation, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int } from "@babylonjs/core";
 
 enum animationState { IDLE = 0, WALK = 1, RUN = 2, AIM = 3, FIRE = 4, RELOAD = 5 }
 
@@ -8,6 +8,9 @@ export class firstPersonController {
     public _canvas: HTMLCanvasElement;
     public mesh: AbstractMesh;
     public currentAnimationState: int;
+    
+    //headLight
+    private light:SpotLight;
 
     // animation trackers
     private _currentAnim: AnimationGroup = null;
@@ -32,16 +35,20 @@ export class firstPersonController {
     constructor(scene: Scene, canvas: HTMLCanvasElement) {
         this.scene = scene;
         this._canvas = canvas;
-        this.CreateController();
         this.CreatePlayer();
-        this.Animation();
+        this.CreateController();
+        this.KeyboardInput();
+
+        this.light = new SpotLight("spotLight", new Vector3(0, 1, 0), new Vector3(0, 0, 1), Math.PI / 3, 2, scene);
+        this.light.intensity = 5000;
+        this.light.parent = this.camera;
     }
 
 
     /**
      * create the camera which represents the player (FPS)
      */
-    CreateController(): void {
+    private CreateController(): void {
         this.camera = new FreeCamera("camera", new Vector3(0, 3, 0), this.scene);
         this.camera.attachControl(this._canvas, true);
 
@@ -50,7 +57,7 @@ export class firstPersonController {
         this.camera.checkCollisions = true;
 
         //define the camera as player (on his hitbox)
-        this.camera.ellipsoid = new Vector3(1, 1.3, 1);
+        this.camera.ellipsoid = new Vector3(1, 1.1, 1);
 
         //Movements
         this.ApplyMovementRules(this.camera);
@@ -72,22 +79,16 @@ export class firstPersonController {
         camera.inertia = 0.1;
     }
 
-    private Animation(): void {
+    private KeyboardInput(): void {
         this.scene.onKeyboardObservable.add((kbInfo) => {
             switch (kbInfo.type) {
                 case KeyboardEventTypes.KEYDOWN:
                     switch (kbInfo.event.key) {
                         case 'z':
-                            this.walk();
-                            break;
                         case 's':
-                            this.camera.speed = 3;
-                            break;
                         case 'q':
-                            this.camera.speed = 3;
-                            break;
                         case 'd':
-                            this.camera.speed = 3;
+                            this.walk();
                             break;
                         case 'Shift':
                             this.run();
@@ -98,48 +99,74 @@ export class firstPersonController {
                         case 'r':
                             this.reload();
                             break;
+                        case 'f':
+                            if(this.light.intensity == 5000)
+                            {
+                                this.light.intensity = 0;
+                            }
+                            else{
+                                this.light.intensity = 5000;
+                            }
+                            
+                    }
+                    break;
+            }
+        })
+        this.scene.onKeyboardObservable.add((kbInfo) => {
+            switch (kbInfo.type) {
+                case KeyboardEventTypes.KEYUP:
+                    switch (kbInfo.event.key) {
+                        case 'z':
+                            this.keyUp();
+                            break;
                     }
                     break;
             }
         })
         this.scene.onPointerObservable.add((pointerInfo) => {
             switch (pointerInfo.type) {
-              case PointerEventTypes.POINTERDOWN:
-                this.fire();
-                break;
+                case PointerEventTypes.POINTERDOWN:
+                    this.fire();
+                    break;
             }
-        })}
+        })
+    }
 
+
+    private keyUp() {
+        this._currentAnim = this._idle;
+        this._animatePlayer();
+    }
     private walk() {
-        this.camera.speed = 3;
+        this.camera.speed = 2;
         this._currentAnim = this._walk;
         this._animatePlayer();
     }
 
     private run() {
-        this.camera.speed = 5;
+        this.camera.speed = 4;
         this._currentAnim = this._run;
         this._animatePlayer();
     }
 
     private sprint() {
-        this.camera.speed = 5;
+        this.camera.speed = 5.5;
         this._currentAnim = this._run2;
         this._animatePlayer();
     }
 
-    private reload(){
+    private reload() {
         this.camera.speed = 3;
         this._currentAnim = this._reload;
         this._animatePlayer();
     }
 
-    private fire(){
+    private fire() {
         this.camera.speed = 3;
         this._currentAnim = this._fire;
         this._fire.play(false);
     }
-    
+
 
 
     private async CreatePlayer(): Promise<any> {
@@ -170,6 +197,11 @@ export class firstPersonController {
         this._run2.loopAnimation = true;
         this._setUpAnimations();
         this._animatePlayer();
+
+        //physics rules
+        const framesPerSecond = 60;
+        const gravity = -9.81; //earth one
+        this.scene.enablePhysics(new Vector3(0, gravity / framesPerSecond, 0), new OimoJSPlugin());
 
         allMeshes.map(allMeshes => {
             allMeshes.checkCollisions = true;
