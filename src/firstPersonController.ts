@@ -1,13 +1,10 @@
 import { Animation, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int } from "@babylonjs/core";
 
-enum animationState { IDLE = 0, WALK = 1, RUN = 2, AIM = 3, FIRE = 4, RELOAD = 5 }
-
 export class firstPersonController {
     public camera: FreeCamera;
     public scene: Scene;
     public _canvas: HTMLCanvasElement;
     public mesh: AbstractMesh;
-    public currentAnimationState: int;
     
     //headLight
     private light:SpotLight;
