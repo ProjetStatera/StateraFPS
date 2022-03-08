@@ -154,7 +154,6 @@ export class firstPersonController {
     }
     
 
-
     private fire() {
         this.runAnim(3,this._fire);
         this._fire.play(false);
