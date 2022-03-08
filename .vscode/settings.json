@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/0bf8e3a2-23d0-4563-83cf-f91be97f9c56/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/miage-statera",
+    "appService.deploySubpath": "."
+}
