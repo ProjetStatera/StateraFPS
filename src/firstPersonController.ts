@@ -119,7 +119,7 @@ export class firstPersonController {
                         case 's':
                         case 'q':
                         case 'd':
-                            this.runAnim(3,this._idle);
+                            this.stopAnim();
                             break;
                     }
                     break;
@@ -141,6 +141,15 @@ export class firstPersonController {
         this._currentAnim = animation;
         this._animatePlayer();
     }
+
+    private stopAnim(){
+        if(this._prevAnim != this._walk)
+        {
+            this.runAnim(3,this._idle);
+        }
+        
+    }
+    
 
 
     private fire() {
