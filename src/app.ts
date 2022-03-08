@@ -1,22 +1,18 @@
 import "@babylonjs/core/Debug/debugLayer";
-import "@babylonjs/inspector";
-import "@babylonjs/loaders";
-import "@babylonjs/materials"
-
-import { SkyMaterial } from "@babylonjs/materials";
-import { AdvancedDynamicTexture, StackPanel, Button, TextBlock, Rectangle, Control, Image } from "@babylonjs/gui";
+import * as GUI from "@babylonjs/gui";
+import * as MATERIAL from "@babylonjs/materials"
+import * as BABYLON from "@babylonjs/core"
 import { firstPersonController } from "./firstPersonController";
-import { Engine, ArcRotateCamera,OimoJSPlugin, SpotLight,HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager, StandardMaterial, PBRMaterial, Material } from "@babylonjs/core";
 
 enum State { START = 0, GAME = 1, LOSE = 2, CUTSCENE = 3 }
 
 class App {
     // General Entire Application
-    private _scene: Scene;
+    private _scene: BABYLON.Scene;
     public _canvas: HTMLCanvasElement;
-    private _engine: Engine;
+    private _engine: BABYLON.Engine;
     private fps: firstPersonController;
-    private _gameScene: Scene;
+    private _gameScene: BABYLON.Scene;
 
     //Scene - related
     private _state: number = 0;
@@ -24,13 +20,13 @@ class App {
     constructor() {
         //assign the canvas and engine
         this._canvas = this._createCanvas();
-        this._engine = new Engine(this._canvas, true);
-        this._scene = new Scene(this._engine);
+        this._engine = new BABYLON.Engine(this._canvas, true);
+        this._scene = new BABYLON.Scene(this._engine);
 
-        var camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero(), this._scene);
+        var camera: BABYLON.ArcRotateCamera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, BABYLON.Vector3.Zero(), this._scene);
         camera.attachControl(this._canvas, true);
         this._scene.debugLayer.show(); //debugger
-        var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 1), this._scene); //white light
+        var light1: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 1), this._scene); //white light
 
         this.main();
     }
@@ -65,25 +61,25 @@ class App {
 
     private async goToStart() {
         this._scene.detachControl(); //dont detect any inputs from this ui while the game is loading
-        let scene = new Scene(this._engine);
-        scene.clearColor = new Color4(0, 0, 0, 1);
-        let camera = new FreeCamera("camera1", new Vector3(0, 0, 0), scene);
-        camera.setTarget(Vector3.Zero());
+        let scene = new BABYLON.Scene(this._engine);
+        scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
+        let camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 0, 0), scene);
+        camera.setTarget(BABYLON.Vector3.Zero());
 
         //create a fullscreen ui for all of our GUI elements
-        const guiMenu = AdvancedDynamicTexture.CreateFullscreenUI("UI");
+        const guiMenu = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
         guiMenu.idealHeight = 1080; //fit our fullscreen ui to this height
 
         //background image
-        const imageRect = new Rectangle("titleContainer");
+        const imageRect = new GUI.Rectangle("titleContainer");
         imageRect.width = 0.8;
         imageRect.thickness = 0;
         guiMenu.addControl(imageRect);
 
-        const startbg = new Image("startbg", "/sprites/start.jpg");
+        const startbg = new GUI.Image("startbg", "/sprites/start.jpg");
         imageRect.addControl(startbg);
 
-        const title = new TextBlock("title", "Statera");
+        const title = new GUI.TextBlock("title", "Statera");
         title.resizeToFit = true;
         title.fontFamily = "Ceviche One";
         title.fontSize = "64px";
@@ -91,18 +87,18 @@ class App {
         title.resizeToFit = true;
         title.top = "14px";
         title.width = 0.8;
-        title.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-        title.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+        title.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
+        title.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
         imageRect.addControl(title);
 
         //create a simple button
-        const startBtn = Button.CreateSimpleButton("start", "PLAY");
+        const startBtn = GUI.Button.CreateSimpleButton("start", "PLAY");
         startBtn.width = 1;
         startBtn.height = "150px";
         startBtn.color = "white";
         startBtn.top = "-14px";
         startBtn.thickness = 0;
-        startBtn.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
+        startBtn.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
         guiMenu.addControl(startBtn);
 
         //this handles interactions with the start button attached to the scene
@@ -123,24 +119,24 @@ class App {
      * Create the map
      */
     async CreateMap(): Promise<void> {
-        var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(0, 1, 0), this._scene); //white light
+        var light1: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), this._scene); //white light
         light1.intensity = 1;
         light1.range = 100;
 
         // Sky material
-        var skyboxMaterial = new SkyMaterial("skyMaterial", this._scene);
+        var skyboxMaterial = new MATERIAL.SkyMaterial("skyMaterial", this._scene);
         skyboxMaterial.backFaceCulling = false;
 
         // Sky mesh (box)
-        var skybox = Mesh.CreateBox("skyBox", 1000.0, this._scene);
+        var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, this._scene);
         skybox.material = skyboxMaterial;
         skyboxMaterial.luminance = 1;
 
         // Manually set the sun position
         skyboxMaterial.useSunPosition = true; // Do not set sun position from azimuth and inclination
-        skyboxMaterial.sunPosition = new Vector3(0, 100, 0);
+        skyboxMaterial.sunPosition = new BABYLON.Vector3(0, 100, 0);
 
-        const result = await SceneLoader.ImportMeshAsync("", "./models/", "SampleScene.glb", this._scene);
+        const result = await BABYLON.SceneLoader.ImportMeshAsync("", "./models/", "SampleScene.glb", this._scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
@@ -157,7 +153,7 @@ class App {
      * launch FirstPersonController.ts
      */
     private async goToGame() {
-        let scene = new Scene(this._engine);
+        let scene = new BABYLON.Scene(this._engine);
         this._gameScene = scene;
         this._scene.detachControl();
         this.fps = new firstPersonController(this._gameScene, this._canvas);
@@ -174,7 +170,7 @@ class App {
         //stable framerate for using gravity
         const framesPerSecond = 60;
         const gravity = -9.81; //earth one
-        this._gameScene.gravity = new Vector3(0, gravity / framesPerSecond, 0);
+        this._gameScene.gravity = new BABYLON.Vector3(0, gravity / framesPerSecond, 0);
         this._gameScene.collisionsEnabled = true;
         //get rid of start scene, switch to gamescene and change states
         this._scene.dispose();

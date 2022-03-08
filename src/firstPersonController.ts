@@ -1,45 +1,45 @@
-import { Animation, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int } from "@babylonjs/core";
+import * as BABYLON from "@babylonjs/core";
 
 enum animationState { IDLE = 0, WALK = 1, RUN = 2, AIM = 3, FIRE = 4, RELOAD = 5 }
 
 export class firstPersonController {
-    public camera: FreeCamera;
-    public scene: Scene;
+    public camera: BABYLON.FreeCamera;
+    public scene: BABYLON.Scene;
     public _canvas: HTMLCanvasElement;
-    public mesh: AbstractMesh;
-    public currentAnimationState: int;
+    public mesh: BABYLON.AbstractMesh;
+    public currentAnimationState: BABYLON.int;
     
     //headLight
-    private light:SpotLight;
+    private light:BABYLON.SpotLight;
 
     // animation trackers
-    private _currentAnim: AnimationGroup = null;
-    private _prevAnim: AnimationGroup;
+    private _currentAnim: BABYLON.AnimationGroup = null;
+    private _prevAnim: BABYLON.AnimationGroup;
 
     //animations
-    private _end: AnimationGroup;
-    private _fire: AnimationGroup;
-    private _idle: AnimationGroup;
-    private _reload: AnimationGroup;
-    private _reloadEmpty: AnimationGroup;
-    private _reloadEmpty2: AnimationGroup;
-    private _run: AnimationGroup;
-    private _run2: AnimationGroup;
-    private _run2_end: AnimationGroup;
-    private _run2_start: AnimationGroup;
-    private _start: AnimationGroup;
-    private _walk: AnimationGroup;
+    private _end: BABYLON.AnimationGroup;
+    private _fire: BABYLON.AnimationGroup;
+    private _idle: BABYLON.AnimationGroup;
+    private _reload: BABYLON.AnimationGroup;
+    private _reloadEmpty: BABYLON.AnimationGroup;
+    private _reloadEmpty2: BABYLON.AnimationGroup;
+    private _run: BABYLON.AnimationGroup;
+    private _run2: BABYLON.AnimationGroup;
+    private _run2_end: BABYLON.AnimationGroup;
+    private _run2_start: BABYLON.AnimationGroup;
+    private _start: BABYLON.AnimationGroup;
+    private _walk: BABYLON.AnimationGroup;
 
 
 
-    constructor(scene: Scene, canvas: HTMLCanvasElement) {
+    constructor(scene: BABYLON.Scene, canvas: HTMLCanvasElement) {
         this.scene = scene;
         this._canvas = canvas;
         this.CreatePlayer();
         this.CreateController();
         this.KeyboardInput();
 
-        this.light = new SpotLight("spotLight", new Vector3(0, 1, 0), new Vector3(0, 0, 1), Math.PI / 3, 2, scene);
+        this.light = new BABYLON.SpotLight("spotLight", new BABYLON.Vector3(0, 1, 0), new BABYLON.Vector3(0, 0, 1), Math.PI / 3, 2, scene);
         this.light.intensity = 5000;
         this.light.parent = this.camera;
     }
@@ -49,7 +49,7 @@ export class firstPersonController {
      * create the camera which represents the player (FPS)
      */
     private CreateController(): void {
-        this.camera = new FreeCamera("camera", new Vector3(0, 3, 0), this.scene);
+        this.camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 3, 0), this.scene);
         this.camera.attachControl(this._canvas, true);
 
         //hitbox + gravity
@@ -57,7 +57,7 @@ export class firstPersonController {
         this.camera.checkCollisions = true;
 
         //define the camera as player (on his hitbox)
-        this.camera.ellipsoid = new Vector3(1, 1.1, 1);
+        this.camera.ellipsoid = new BABYLON.Vector3(1, 1.1, 1);
 
         //Movements
         this.ApplyMovementRules(this.camera);
@@ -67,7 +67,7 @@ export class firstPersonController {
      * Movements rules
      * @param camera this camera
      */
-    ApplyMovementRules(camera: FreeCamera): void {
+    ApplyMovementRules(camera: BABYLON.FreeCamera): void {
         camera.keysUp.push(90);//z
         camera.keysDown.push(83);//s
         camera.keysLeft.push(81)//q
@@ -81,7 +81,7 @@ export class firstPersonController {
     private KeyboardInput(): void {
         this.scene.onKeyboardObservable.add((kbInfo) => {
             switch (kbInfo.type) {
-                case KeyboardEventTypes.KEYDOWN:
+                case BABYLON.KeyboardEventTypes.KEYDOWN:
                     switch (kbInfo.event.key) {
                         case 'z':
                         case 's':
@@ -113,7 +113,7 @@ export class firstPersonController {
         })
         this.scene.onKeyboardObservable.add((kbInfo) => {
             switch (kbInfo.type) {
-                case KeyboardEventTypes.KEYUP:
+                case BABYLON.KeyboardEventTypes.KEYUP:
                     switch (kbInfo.event.key) {
                         case 'z':
                         case 's':
@@ -127,7 +127,7 @@ export class firstPersonController {
         })
         this.scene.onPointerObservable.add((pointerInfo) => {
             switch (pointerInfo.type) {
-                case PointerEventTypes.POINTERDOWN:
+                case BABYLON.PointerEventTypes.POINTERDOWN:
                     this.fire();
                     break;
             }
@@ -135,7 +135,7 @@ export class firstPersonController {
     }
 
 
-    private runAnim(speed: int, animation: AnimationGroup)
+    private runAnim(speed: BABYLON.int, animation: BABYLON.AnimationGroup)
     {
         this.camera.speed = speed;
         this._currentAnim = animation;
@@ -163,13 +163,13 @@ export class firstPersonController {
 
 
     private async CreatePlayer(): Promise<any> {
-        const result = await SceneLoader.ImportMeshAsync("", "./models/", "FPS.glb", this.scene);
+        const result = await BABYLON.SceneLoader.ImportMeshAsync("", "./models/", "FPS.glb", this.scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
         env.parent = this.camera;
-        env.position = new Vector3(0, -0.1, 0);
-        env.scaling = new Vector3(0.3, 0.3, -0.3);
+        env.position = new BABYLON.Vector3(0, -0.1, 0);
+        env.scaling = new BABYLON.Vector3(0.3, 0.3, -0.3);
 
         //animations
         this._end = this.scene.animationGroups[0];
@@ -194,15 +194,15 @@ export class firstPersonController {
         //physics rules
         const framesPerSecond = 60;
         const gravity = -9.81; //earth one
-        this.scene.enablePhysics(new Vector3(0, gravity / framesPerSecond, 0), new OimoJSPlugin());
+        this.scene.enablePhysics(new BABYLON.Vector3(0, gravity / framesPerSecond, 0), new BABYLON.OimoJSPlugin());
 
         allMeshes.map(allMeshes => {
             allMeshes.checkCollisions = true;
-            allMeshes.ellipsoid = new Vector3(1, 1, 1);
+            allMeshes.ellipsoid = new BABYLON.Vector3(1, 1, 1);
         })
 
         return {
-            mesh: env as Mesh,
+            mesh: env as BABYLON.Mesh,
             animationGroups: result.animationGroups
         }
     }
