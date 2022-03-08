@@ -64,7 +64,6 @@ class App {
     }
 
     private async goToStart() {
-        this._engine.displayLoadingUI();
         this._scene.detachControl(); //dont detect any inputs from this ui while the game is loading
         let scene = new Scene(this._engine);
         scene.clearColor = new Color4(0, 0, 0, 1);
@@ -113,7 +112,6 @@ class App {
         });
         //--SCENE FINISHED LOADING--
         await scene.whenReadyAsync();
-        this._engine.hideLoadingUI();
         //lastly set the current state to the start state and set the scene to the start scene
         this._scene.dispose();
         this._scene = scene;
@@ -147,7 +145,7 @@ class App {
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
 
-        this._scene.getTextureByUniqueID(267).level = 0;
+        this._scene.getTextureByUniqueID(240).level = 0; //delete shadows
 
         //hitbox
         allMeshes.map(allMeshes => {

@@ -72,7 +72,6 @@ export class firstPersonController {
         camera.keysDown.push(83);//s
         camera.keysLeft.push(81)//q
         camera.keysRight.push(68);//d
-        camera.keysUpward.push(32);//space (jump)
         this.camera.minZ = 0.45;
         this.camera.speed = 2;
         this.camera.angularSensibility = 2000;
@@ -88,16 +87,16 @@ export class firstPersonController {
                         case 's':
                         case 'q':
                         case 'd':
-                            this.walk();
+                            this.runAnim(3,this._idle);
                             break;
                         case 'Shift':
-                            this.run();
+                            this.runAnim(5,this._run);
                             break;
                         case 'Control':
-                            this.sprint();
+                            this.runAnim(6,this._run2);
                             break;
                         case 'r':
-                            this.reload();
+                            this.runAnim(3,this._reloadEmpty);
                             break;
                         case 'f':
                             if(this.light.intensity == 5000)
@@ -117,7 +116,10 @@ export class firstPersonController {
                 case KeyboardEventTypes.KEYUP:
                     switch (kbInfo.event.key) {
                         case 'z':
-                            this.keyUp();
+                        case 's':
+                        case 'q':
+                        case 'd':
+                            this.runAnim(1,this._idle);
                             break;
                     }
                     break;
@@ -133,38 +135,16 @@ export class firstPersonController {
     }
 
 
-    private keyUp() {
-        this._currentAnim = this._idle;
-        this._animatePlayer();
-    }
-    private walk() {
-        this.camera.speed = 2;
-        this._currentAnim = this._walk;
-        this._animatePlayer();
-    }
-
-    private run() {
-        this.camera.speed = 4;
-        this._currentAnim = this._run;
-        this._animatePlayer();
-    }
-
-    private sprint() {
-        this.camera.speed = 5.5;
-        this._currentAnim = this._run2;
-        this._animatePlayer();
-    }
-
-    private reload() {
-        this.camera.speed = 3;
-        this._currentAnim = this._reload;
+    private runAnim(speed: int, animation: AnimationGroup)
+    {
+        this.camera.speed = speed;
+        this._currentAnim = animation;
         this._animatePlayer();
     }
 
     private fire() {
-        this.camera.speed = 3;
-        this._currentAnim = this._fire;
-        this._fire.play(false);
+        this.runAnim(3,this._fire);
+        //this._fire.play(false);
     }
 
 
