@@ -87,7 +87,7 @@ export class firstPersonController {
                         case 's':
                         case 'q':
                         case 'd':
-                            this.runAnim(3,this._idle);
+                            this.runAnim(3,this._walk);
                             break;
                         case 'Shift':
                             this.runAnim(5,this._run);
@@ -119,7 +119,7 @@ export class firstPersonController {
                         case 's':
                         case 'q':
                         case 'd':
-                            this.runAnim(1,this._idle);
+                            this.runAnim(3,this._idle);
                             break;
                     }
                     break;
@@ -142,9 +142,10 @@ export class firstPersonController {
         this._animatePlayer();
     }
 
+
     private fire() {
         this.runAnim(3,this._fire);
-        //this._fire.play(false);
+        this._fire.play(false);
     }
 
 
