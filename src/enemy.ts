@@ -58,8 +58,9 @@ export class Enemy {
         env.position = position;
         env.scaling = new Vector3(0.02, 0.02, -0.02);
         env.name = "zombie";
+        this.zombie = env;
         this._setUpAnimations();
-        this.scene.onBeforeRenderObservable.add(function () { this.chase() });
+        //this.scene.onBeforeRenderObservable.add(function () { this.chase() });
 
         this._attack = this.scene.getAnimationGroupByName("Zombie@Z_Attack");
         this._fallingBack = this.scene.getAnimationGroupByName("Zombie@Z_FallingBack");
