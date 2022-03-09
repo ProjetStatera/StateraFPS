@@ -5,8 +5,9 @@ import "@babylonjs/materials"
 
 import { SkyMaterial } from "@babylonjs/materials";
 import { AdvancedDynamicTexture, StackPanel, Button, TextBlock, Rectangle, Control, Image } from "@babylonjs/gui";
-import { firstPersonController } from "./firstPersonController";
-import { Engine, ArcRotateCamera,OimoJSPlugin, SpotLight,HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager, StandardMaterial, PBRMaterial, Material } from "@babylonjs/core";
+import { FirstPersonController } from "./FirstPersonController";
+import { Enemy } from "./Enemy";
+import { Engine, int, Tools, ArcRotateCamera, OimoJSPlugin, SpotLight, HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager, StandardMaterial, PBRMaterial, Material } from "@babylonjs/core";
 
 enum State { START = 0, GAME = 1, LOSE = 2, CUTSCENE = 3 }
 
@@ -14,8 +15,11 @@ class App {
     // General Entire Application
     private _scene: Scene;
     public _canvas: HTMLCanvasElement;
-    private _engine: Engine;
-    private fps: firstPersonController;
+    public _engine: Engine;
+    private fps: FirstPersonController;
+    private zombie: Enemy;
+    private difficulty: int;
+
     private _gameScene: Scene;
 
     //Scene - related
@@ -63,6 +67,7 @@ class App {
         });
     }
 
+
     private async goToStart() {
         this._scene.detachControl(); //dont detect any inputs from this ui while the game is loading
         let scene = new Scene(this._engine);
@@ -72,7 +77,7 @@ class App {
 
         //create a fullscreen ui for all of our GUI elements
         const guiMenu = AdvancedDynamicTexture.CreateFullscreenUI("UI");
-        guiMenu.idealHeight = 1080; //fit our fullscreen ui to this height
+        guiMenu.idealHeight = 720; //fit our fullscreen ui to this height
 
         //background image
         const imageRect = new Rectangle("titleContainer");
@@ -105,6 +110,51 @@ class App {
         startBtn.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
         guiMenu.addControl(startBtn);
 
+        // difficulties - easy
+        const easy = new Image("easy", "/sprites/easy.png");
+        easy.width = "5%";
+        easy.stretch = Image.STRETCH_UNIFORM;
+        easy.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+        easy.left = -200;
+        easy.paddingBottomInPixels = 620;
+        guiMenu.addControl(easy);
+        easy.onPointerDownObservable.add(() => {
+            easy.width = "8%";
+            medium.width = "5%";
+            hard.width = "5%";
+            this.difficulty = 400;
+        });
+
+        //medium
+        const medium = new Image("medium", "/sprites/medium.png");
+        medium.width = "5%";
+        medium.stretch = Image.STRETCH_UNIFORM;
+        medium.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+        medium.left = -100;
+        medium.paddingBottomInPixels = 620;
+        guiMenu.addControl(medium);
+        medium.onPointerDownObservable.add(() => {
+            easy.width = "5%";
+            medium.width = "8%";
+            hard.width = "5%";
+            this.difficulty = 250;
+        });
+
+        //hard
+        const hard = new Image("hard", "/sprites/hard.png");
+        hard.width = "5%";
+        hard.stretch = Image.STRETCH_UNIFORM;
+        hard.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+        hard.paddingBottomInPixels = 620;
+        guiMenu.addControl(hard);
+        hard.onPointerDownObservable.add(() => {
+            easy.width = "5%";
+            medium.width = "5%";
+            hard.width = "8%";
+            this.difficulty = 100;
+        });
+
+
         //this handles interactions with the start button attached to the scene
         startBtn.onPointerDownObservable.add(() => {
             this.goToGame();
@@ -116,13 +166,10 @@ class App {
         this._scene.dispose();
         this._scene = scene;
         this._state = State.GAME;
-
     }
 
-    /**
-     * Create the map
-     */
-    async CreateMap(): Promise<void> {
+
+    private async CreateMap(): Promise<void> {
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(0, 1, 0), this._scene); //white light
         light1.intensity = 1;
         light1.range = 100;
@@ -145,7 +192,7 @@ class App {
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
 
-        this._scene.getTextureByUniqueID(240).level = 0; //delete shadows
+        //this._scene.getTextureByUniqueID(240).level = 0; //delete shadows
 
         //hitbox
         allMeshes.map(allMeshes => {
@@ -160,7 +207,8 @@ class App {
         let scene = new Scene(this._engine);
         this._gameScene = scene;
         this._scene.detachControl();
-        this.fps = new firstPersonController(this._gameScene, this._canvas);
+        this.fps = new FirstPersonController(this._gameScene, this._canvas);
+        this.zombie = new Enemy(this._gameScene, this._canvas, this.difficulty);
         this._gameScene.onPointerDown = (evt) => {
             if (evt.button === 0)//left click
             {
@@ -184,9 +232,8 @@ class App {
         this.CreateMap();
         await this._scene.whenReadyAsync();
         this._engine.hideLoadingUI();
-        //this._scene.debugLayer.show();
+        this._scene.debugLayer.show();
     }
-
 
     /**
      * set up the canvas

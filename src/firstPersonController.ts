@@ -1,6 +1,6 @@
 import { Animation, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int } from "@babylonjs/core";
 
-export class firstPersonController {
+export class FirstPersonController {
     public camera: FreeCamera;
     public scene: Scene;
     public _canvas: HTMLCanvasElement;
@@ -37,7 +37,7 @@ export class firstPersonController {
         this.KeyboardInput();
 
         this.light = new SpotLight("spotLight", new Vector3(0, 1, 0), new Vector3(0, 0, 1), Math.PI / 3, 2, scene);
-        this.light.intensity = 5000;
+        this.light.intensity = 0;
         this.light.parent = this.camera;
     }
 
@@ -116,7 +116,7 @@ export class firstPersonController {
                         case 's':
                         case 'q':
                         case 'd':
-                            this.stopAnim();
+                            this.runAnim(3,this._idle);
                             break;
                     }
                     break;
@@ -146,8 +146,6 @@ export class firstPersonController {
         }
         
     }
-    
-
 
     private fire() {
         this.runAnim(3,this._fire);
@@ -166,18 +164,18 @@ export class firstPersonController {
         env.scaling = new Vector3(0.3, 0.3, -0.3);
 
         //animations
-        this._end = this.scene.animationGroups[0];
-        this._fire = this.scene.animationGroups[1];
-        this._idle = this.scene.animationGroups[2];
-        this._reload = this.scene.animationGroups[3];
-        this._reloadEmpty = this.scene.animationGroups[4];
-        this._reloadEmpty2 = this.scene.animationGroups[5];
-        this._run = this.scene.animationGroups[6];
-        this._run2 = this.scene.animationGroups[7];
-        this._run2_end = this.scene.animationGroups[8];
-        this._run2_start = this.scene.animationGroups[9];
-        this._start = this.scene.animationGroups[10];
-        this._walk = this.scene.animationGroups[11];
+        this._end = this.scene.getAnimationGroupByName("metarig|end");
+        this._fire = this.scene.getAnimationGroupByName("metarig|Fire");
+        this._idle = this.scene.getAnimationGroupByName("metarig|idle");
+        this._reload = this.scene.getAnimationGroupByName("metarig|Reload");
+        this._reloadEmpty = this.scene.getAnimationGroupByName("metarig|Reload_empty");
+        this._reloadEmpty2 = this.scene.getAnimationGroupByName("metarig|Reload_empty2");
+        this._run = this.scene.getAnimationGroupByName("metarig|run");
+        this._run2 = this.scene.getAnimationGroupByName("metarig|run2");
+        this._run2_end = this.scene.getAnimationGroupByName("metarig|run2_end");
+        this._run2_start = this.scene.getAnimationGroupByName("metarig|run2_start");
+        this._start = this.scene.getAnimationGroupByName("metarig|start");
+        this._walk = this.scene.getAnimationGroupByName("metarig|walk");
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
