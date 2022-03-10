@@ -1,19 +1,23 @@
-import { Animation, Tools,RayHelper, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int, _TimeToken } from "@babylonjs/core";
+import { Animation, Tools, RayHelper, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int, _TimeToken } from "@babylonjs/core";
 import { Timeline } from "@babylonjs/inspector/components/actionTabs/tabs/propertyGrids/animations/timeline";
 import { Enemy } from "./enemy";
 
 export class FirstPersonController {
-    public camera: FreeCamera;
-    public scene: Scene;
-    public _canvas: HTMLCanvasElement;
-    public mesh: Mesh;
-    public zombie: Enemy;
-    public zombies: Array<Enemy>;
-    public engine: Engine;
-    zMeshes: Array<String>;
+    private _camera: FreeCamera;
+    private _scene: Scene;
+    private _canvas: HTMLCanvasElement;
+    private _zombie: Enemy;
+    private _zMeshes: Array<String>;
+
+    //sounds
+    private _ak47Sound: Sound;
+    private _flashlightSound: Sound;
+
+
+    private _ambianceSound: Sound;
 
     //headLight
-    private light: SpotLight;
+    private _light: SpotLight;
 
     // animation trackers
     private _currentAnim: AnimationGroup = null;
@@ -33,10 +37,11 @@ export class FirstPersonController {
     private _start: AnimationGroup;
     private _walk: AnimationGroup;
 
-    constructor(scene: Scene, canvas: HTMLCanvasElement, zombies:Array<Enemy>) {
-        this.scene = scene;
+    //soon an Array of Enemy instead of a simple zombie
+    constructor(scene: Scene, canvas: HTMLCanvasElement, zombie: Enemy) {
+        this._scene = scene;
         this._canvas = canvas;
-        this.zombies = zombies;
+        this._zombie = zombie;
         this.CreatePlayer();
         this.CreateController();
         this.KeyboardInput();
@@ -48,18 +53,18 @@ export class FirstPersonController {
      * create the camera which represents the player (FPS)
      */
     private CreateController(): void {
-        this.camera = new FreeCamera("camera", new Vector3(0, 3, 0), this.scene);
-        this.camera.attachControl(this._canvas, true);
+        this._camera = new FreeCamera("camera", new Vector3(0, 3, 0), this._scene);
+        this._camera.attachControl(this._canvas, true);
 
         //hitbox + gravity
-        this.camera.applyGravity = true;
-        this.camera.checkCollisions = true;
+        this._camera.applyGravity = true;
+        this._camera.checkCollisions = true;
 
         //define the camera as player (on his hitbox)
-        this.camera.ellipsoid = new Vector3(1, 1.1, 1);
+        this._camera.ellipsoid = new Vector3(1, 1.1, 1);
 
         //Movements
-        this.ApplyMovementRules(this.camera);
+        this.ApplyMovementRules(this._camera);
     }
 
     /**
@@ -71,14 +76,14 @@ export class FirstPersonController {
         camera.keysDown.push(83);//s
         camera.keysLeft.push(81)//q
         camera.keysRight.push(68);//d
-        this.camera.minZ = 0.45;
-        this.camera.speed = 2;
-        this.camera.angularSensibility = 2000;
+        this._camera.minZ = 0.45;
+        this._camera.speed = 2;
+        this._camera.angularSensibility = 2000;
         camera.inertia = 0.1;
     }
 
     private KeyboardInput(): void {
-        this.scene.onKeyboardObservable.add((kbInfo) => {
+        this._scene.onKeyboardObservable.add((kbInfo) => {
             switch (kbInfo.type) {
                 case KeyboardEventTypes.KEYDOWN:
                     switch (kbInfo.event.key) {
@@ -98,17 +103,18 @@ export class FirstPersonController {
                             this.runAnim(3, this._reloadEmpty);
                             break;
                         case 'f':
-                            if (this.light.intensity == 5000) {
-                                this.light.intensity = 0;
+                            this._flashlightSound.play();
+                            if (this._light.intensity == 5000) {
+                                this._light.intensity = 0;
                             }
                             else {
-                                this.light.intensity = 5000;
+                                this._light.intensity = 5000;
                             }
                     }
                     break;
             }
         })
-        this.scene.onKeyboardObservable.add((kbInfo) => {
+        this._scene.onKeyboardObservable.add((kbInfo) => {
             switch (kbInfo.type) {
                 case KeyboardEventTypes.KEYUP:
                     switch (kbInfo.event.key) {
@@ -122,7 +128,7 @@ export class FirstPersonController {
                     break;
             }
         })
-        this.scene.onPointerObservable.add((pointerInfo) => {
+        this._scene.onPointerObservable.add((pointerInfo) => {
             switch (pointerInfo.type) {
                 case PointerEventTypes.POINTERDOWN:
                     this.fire();
@@ -131,43 +137,54 @@ export class FirstPersonController {
         })
     }
 
-    private setupFlashlight(){
-        this.light = new SpotLight("spotLight", new Vector3(0, 1, 0), new Vector3(0, 0, 1), Math.PI / 3, 2, this.scene);
-        this.light.intensity = 0;
-        this.light.parent = this.camera;
+    /**
+     * create the flashlight
+     */
+    private setupFlashlight() {
+        this._light = new SpotLight("spotLight", new Vector3(0, 1, 0), new Vector3(0, 0, 1), Math.PI / 3, 2, this._scene);
+        this._light.intensity = 0;
+        this._light.parent = this._camera;
     }
 
+    /**
+     * zombie's meshes, used to know if the zombie is hit
+     */
     private setupAllMeshes() {
-        this.zMeshes = ["node8", "node10", "node12", "node14", "node16", "node18", "node20", "node22",
+        this._zMeshes = ["node8", "node10", "node12", "node14", "node16", "node18", "node20", "node22",
             "node24", "node26", "node28", "node30", "node32", "node34",];
     }
 
-
+    /**
+     * Launch the animation
+     * @param speed velocity of the player
+     * @param animation launch this animation
+     */
     private runAnim(speed: int, animation: AnimationGroup) {
-        this.camera.speed = speed;
+        this._camera.speed = speed;
         this._currentAnim = animation;
         this._animatePlayer();
     }
 
-    private stopAnim() {
-        if (this._prevAnim != this._walk) {
-            this.runAnim(3, this._idle);
-        }
-    }
-
+    /**
+     * coordinate transform of enemy
+     * @param vector 
+     * @param mesh 
+     * @returns 
+     */
     private vecToLocal(vector, mesh) {
         var m = mesh.getWorldMatrix();
         var v = Vector3.TransformCoordinates(vector, m);
         return v;
     }
 
+    //left and right click to set fire 
     private fire() {
-        var zombie = this.zombie;
-        var origin = this.camera.position;
+        var zombie = this._zombie;
+        var origin = this._camera.position;
 
-
+        this._ak47Sound.play(); //sound
         var forward = new Vector3(0, 0, 1);
-        forward = this.vecToLocal(forward, this.camera);
+        forward = this.vecToLocal(forward, this._camera);
 
         var direction = forward.subtract(origin);
         direction = Vector3.Normalize(direction);
@@ -177,44 +194,48 @@ export class FirstPersonController {
         var ray = new Ray(origin, direction, length);
 
         let rayHelper = new RayHelper(ray);
-        rayHelper.show(this.scene);
+        rayHelper.show(this._scene);
 
-        var hit = this.scene.pickWithRay(ray);
+        var hit = this._scene.pickWithRay(ray);
+        
         //animation
         this.runAnim(3, this._fire);
         this._fire.play(false);
 
-        //const idUnique = this.scene.getMeshByName("zombie").uniqueId;
-        for (let i = 0; i < this.zMeshes.length; i++) {
-            if (hit.pickedMesh.name == this.zMeshes[i]) {
-                this.zombie.die();
+        for (let i = 0; i < this._zMeshes.length; i++) {
+            if (hit.pickedMesh.name == this._zMeshes[i]) {
+                this._zombie.die();
             }
         }
     }
 
 
     private async CreatePlayer(): Promise<any> {
-        const result = await SceneLoader.ImportMeshAsync("", "./models/", "FPS.glb", this.scene);
+        const result = await SceneLoader.ImportMeshAsync("", "./models/", "FPS.glb", this._scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
-        env.parent = this.camera;
+        env.parent = this._camera;
         env.position = new Vector3(0, -0.1, 0);
         env.scaling = new Vector3(0.3, 0.3, -0.3);
 
+        //audio effect 
+        this._ak47Sound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
+        this._flashlightSound = new Sound("flashlightSound", "sounds/flashlight.mp3", this._scene);
+
         //animations
-        this._end = this.scene.getAnimationGroupByName("metarig|end");
-        this._fire = this.scene.getAnimationGroupByName("metarig|Fire");
-        this._idle = this.scene.getAnimationGroupByName("metarig|idle");
-        this._reload = this.scene.getAnimationGroupByName("metarig|Reload");
-        this._reloadEmpty = this.scene.getAnimationGroupByName("metarig|Reload_empty");
-        this._reloadEmpty2 = this.scene.getAnimationGroupByName("metarig|Reload_empty2");
-        this._run = this.scene.getAnimationGroupByName("metarig|run");
-        this._run2 = this.scene.getAnimationGroupByName("metarig|run2");
-        this._run2_end = this.scene.getAnimationGroupByName("metarig|run2_end");
-        this._run2_start = this.scene.getAnimationGroupByName("metarig|run2_start");
-        this._start = this.scene.getAnimationGroupByName("metarig|start");
-        this._walk = this.scene.getAnimationGroupByName("metarig|walk");
+        this._end = this._scene.getAnimationGroupByName("metarig|end");
+        this._fire = this._scene.getAnimationGroupByName("metarig|Fire");
+        this._idle = this._scene.getAnimationGroupByName("metarig|idle");
+        this._reload = this._scene.getAnimationGroupByName("metarig|Reload");
+        this._reloadEmpty = this._scene.getAnimationGroupByName("metarig|Reload_empty");
+        this._reloadEmpty2 = this._scene.getAnimationGroupByName("metarig|Reload_empty2");
+        this._run = this._scene.getAnimationGroupByName("metarig|run");
+        this._run2 = this._scene.getAnimationGroupByName("metarig|run2");
+        this._run2_end = this._scene.getAnimationGroupByName("metarig|run2_end");
+        this._run2_start = this._scene.getAnimationGroupByName("metarig|run2_start");
+        this._start = this._scene.getAnimationGroupByName("metarig|start");
+        this._walk = this._scene.getAnimationGroupByName("metarig|walk");
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
@@ -225,7 +246,7 @@ export class FirstPersonController {
         //physics rules
         const framesPerSecond = 60;
         const gravity = -9.81; //earth one
-        this.scene.enablePhysics(new Vector3(0, gravity / framesPerSecond, 0), new OimoJSPlugin());
+        this._scene.enablePhysics(new Vector3(0, gravity / framesPerSecond, 0), new OimoJSPlugin());
 
         allMeshes.map(allMeshes => {
             allMeshes.checkCollisions = true;
@@ -239,7 +260,7 @@ export class FirstPersonController {
     }
 
     private _setUpAnimations(): void {
-        this.scene.stopAllAnimations();
+        this._scene.stopAllAnimations();
 
         //initialize current and previous
         this._currentAnim = this._start;

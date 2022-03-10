@@ -1,7 +1,6 @@
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders";
-import "@babylonjs/materials"
 
 import { SkyMaterial } from "@babylonjs/materials";
 import { AdvancedDynamicTexture, StackPanel, Button, TextBlock, Rectangle, Control, Image } from "@babylonjs/gui";
@@ -14,18 +13,17 @@ enum State { START = 0, GAME = 1, LOSE = 2, CUTSCENE = 3 }
 class App {
     // General Entire Application
     private _scene: Scene;
-    public _canvas: HTMLCanvasElement;
-    public _engine: Engine;
-    private fps: FirstPersonController;
-    private zombie: Enemy;
-    private difficulty: int;
-    private velocity: float;
+    private _canvas: HTMLCanvasElement;
+    private _engine: Engine;
+    private _fps: FirstPersonController;
+    private _zombie: Enemy;
+    private _difficulty: int;
+    private _velocity: float;
     private _transition: boolean = false;
-    private light1: Light;
-    private skyboxMaterial: SkyMaterial;
-    public zombies: Array<Enemy>;
-
+    private _light1: Light;
+    private _skyboxMaterial: SkyMaterial;
     private _gameScene: Scene;
+    private _ambianceMusic: Sound;
 
     //Scene - related
     private _state: number = 0;
@@ -72,7 +70,9 @@ class App {
         });
     }
 
-
+    /**
+     * Main menu GUI
+     */
     private async goToStart() {
         this._scene.detachControl(); //dont detect any inputs from this ui while the game is loading
         let scene = new Scene(this._engine);
@@ -127,8 +127,8 @@ class App {
             easy.width = "8%";
             medium.width = "5%";
             hard.width = "5%";
-            this.difficulty = 400;
-            this.velocity = 0.4;
+            this._difficulty = 400;
+            this._velocity = 0.4;
         });
 
         //medium
@@ -143,8 +143,8 @@ class App {
             easy.width = "5%";
             medium.width = "8%";
             hard.width = "5%";
-            this.difficulty = 250;
-            this.velocity = 0.7;
+            this._difficulty = 250;
+            this._velocity = 0.7;
         });
 
         //hard
@@ -158,8 +158,8 @@ class App {
             easy.width = "5%";
             medium.width = "5%";
             hard.width = "8%";
-            this.difficulty = 100;
-            this.velocity = 1.2;
+            this._difficulty = 100;
+            this._velocity = 1.2;
         });
 
         //this handles interactions with the start button attached to the scene
@@ -175,11 +175,21 @@ class App {
         this._state = State.GAME;
     }
 
+    /**
+     * generate all meshes with glb map file
+     */
     private async CreateMap(): Promise<void> {
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(0, 1, 0), this._scene); //white light
         light1.intensity = 0.05;
         light1.range = 100;
-        this.light1 = light1;
+        this._light1 = light1;
+
+        //sound         
+        this._ambianceMusic = new Sound("ambianceMusic", "sounds/music.mp3", this._scene ,null, {
+            loop: true,
+            autoplay: true,
+            volume: 0.8
+          });
 
         // Sky material
         var skyboxMaterial = new SkyMaterial("skyMaterial", this._scene);
@@ -189,7 +199,7 @@ class App {
         var skybox = Mesh.CreateBox("skyBox", 1000.0, this._scene);
         skybox.material = skyboxMaterial;
         skyboxMaterial.luminance = 0;
-        this.skyboxMaterial = skyboxMaterial;
+        this._skyboxMaterial = skyboxMaterial;
 
         // Manually set the sun position
         skyboxMaterial.useSunPosition = false; // Do not set sun position from azimuth and inclination
@@ -200,7 +210,7 @@ class App {
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
 
-        //this._scene.getTextureByUniqueID(457).level = 0; //delete shadows
+        this._scene.getTextureByUniqueID(454).level = 0; //delete shadows
 
         //hitbox
         allMeshes.map(allMeshes => {
@@ -208,21 +218,26 @@ class App {
         })
     }
 
+    /**
+     * day/night
+     */
     private KeyboardInput(): void {
         this._scene.onKeyboardObservable.add((kbInfo) => {
             switch (kbInfo.type) {
                 case KeyboardEventTypes.KEYDOWN:
                     switch (kbInfo.event.key) {
                         case 'n':
-                            if (this.light1.intensity != 1) {
-                                this.skyboxMaterial.luminance = 1;
-                                this.light1.intensity = 1;
-                                this.skyboxMaterial.useSunPosition = true; // Do not set sun position from azimuth and inclination
-                                this.skyboxMaterial.sunPosition = new Vector3(0, 100, 0);
+                            if (this._light1.intensity != 1) {
+                                this._ambianceMusic.stop();
+                                this._skyboxMaterial.luminance = 1;
+                                this._light1.intensity = 1;
+                                this._skyboxMaterial.useSunPosition = true; // Do not set sun position from azimuth and inclination
+                                this._skyboxMaterial.sunPosition = new Vector3(0, 100, 0);
                             } else {
-                                this.skyboxMaterial.luminance = 0;
-                                this.light1.intensity = 0.05;
-                                this.skyboxMaterial.useSunPosition = false;
+                                this._ambianceMusic.play();
+                                this._skyboxMaterial.luminance = 0;
+                                this._light1.intensity = 0.05;
+                                this._skyboxMaterial.useSunPosition = false;
                             }
                             break;
                     }
@@ -232,22 +247,16 @@ class App {
     }
 
     /**
-     * launch FirstPersonController.ts
+     * launch FirstPersonController.ts and change scene to "in game" one
      */
     private async goToGame() {
         let scene = new Scene(this._engine);
         this._gameScene = scene;
         this._scene.detachControl();
 
-        this.zombies[0] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
-        this.zombies[1] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
-        this.zombies[2] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
-        this.zombies[3] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
-        this.zombies[4] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
-        this.zombies[5] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
-        this.zombies[6] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
+        this._zombie = (new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity)); //only one zombie for testing
+        this._fps = new FirstPersonController(this._gameScene, this._canvas,this._zombie);
 
-        this.fps = new FirstPersonController(this._gameScene, this._canvas,this.zombies);
         this._gameScene.onPointerDown = (evt) => {
             if (evt.button === 0)//left click
             {
@@ -274,6 +283,9 @@ class App {
         this._scene.debugLayer.show();
     }
 
+    /**
+     * If playerHealth == 0 display lose screen to retry
+     */
     public async goToLose(): Promise<void> {
         this._engine.displayLoadingUI();
 

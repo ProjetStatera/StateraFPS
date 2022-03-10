@@ -5,16 +5,14 @@ import { Player } from "./Player";
 
 export class Enemy {
 
-    private engine: Engine;
     private velocity: float;
-    private zombie: Enemy;
     private isDead: Boolean;
 
     public camera: FreeCamera;
     public scene: Scene;
     public _canvas: HTMLCanvasElement;
     public zombieMeshes: AbstractMesh;
-    public enemyList: Array<Enemy>;
+    public enemyList: Array<Enemy>; //coming soon
 
     // animation trackers
     private _currentAnim: AnimationGroup = null;
@@ -35,18 +33,8 @@ export class Enemy {
         this.velocity = velocity;
         this.spawner(difficulty);
         this.update();
-        //this.KeyboardInput();
     }
 
-    /*private async spawner(difficulty: int): Promise<any> {
-        for (let i = 0; i <= 20; i++) {
-            this.enemyList[i] = new Enemy(this.scene, this._canvas, difficulty);
-        }
-        //Adding up the chase() functions of each enemy to the render observable
-        for (let i = 0; i < this.enemyList.length; i++) {
-            this.scene.onBeforeRenderObservable.add(function () { this.enemyList[i].chase(); });
-        }
-    }*/
     private async spawner(difficulty: int): Promise<any> {
         this.CreateEnemy(new Vector3(this.getRandomInt(difficulty), 0, this.getRandomInt(difficulty)));
     }
@@ -70,7 +58,7 @@ export class Enemy {
         this._walk = this.scene.getAnimationGroupByName("Zombie@Z_Walk1_InPlace");
         this._walk2 = this.scene.getAnimationGroupByName("Zombie@Z_Walk_InPlace");
         this._setUpAnimations();
-        this._animatePlayer()
+        this._animateZombie()
 
         allMeshes.map(allMeshes => {
             allMeshes.checkCollisions = true;
@@ -84,6 +72,9 @@ export class Enemy {
     private _deltaTime: number = 0;
     private lastUpdate: number = Date.now();
 
+    /**
+     * launched every 60ms 
+     */
     private update() {
         this.scene.onReadyObservable.addOnce(() => {
         setInterval(() => {
@@ -99,7 +90,7 @@ export class Enemy {
 
     public getHit() {
         this._currentAnim = this._fallingBack;
-        this._animatePlayer();
+        this._animateZombie();
     }
 
     public die() {
@@ -112,6 +103,10 @@ export class Enemy {
         }
     }
 
+    /**
+     * chasing the player 
+     * @param velocity zombie's one
+     */
     private chase(velocity: float) {
         let zombie = this.zombieMeshes;
         let scene = this.scene;
@@ -131,15 +126,15 @@ export class Enemy {
             // Move enemy towards the player and stops slightly ahead
             else if (velocity >= 0.6) {
                 this._currentAnim = this._run;
-                this._animatePlayer();
+                this._animateZombie();
             }
             else if (velocity == 0) {
                 this._currentAnim = this._idle;
-                this._animatePlayer();
+                this._animateZombie();
             }
             else if (velocity > 0 && velocity < 0.6) {
                 this._currentAnim = this._walk2;
-                this._animatePlayer();
+                this._animateZombie();
             }
             distVec -= velocity;
             zombie.translate(new Vector3(targetVecNorm._x, 0, targetVecNorm._z,), velocity, Space.WORLD);
@@ -153,10 +148,10 @@ export class Enemy {
     private attack() {
         if (!this.isDead && !this._attack.isPlaying)
             this._currentAnim = this._attack;
-            this._animatePlayer();
+            this._animateZombie();
     }
 
-    private _animatePlayer(): void {
+    private _animateZombie(): void {
         if (this._currentAnim != null && this._prevAnim !== this._currentAnim) {
             this._prevAnim.stop();
             this._currentAnim.play(this._currentAnim.loopAnimation);
@@ -176,6 +171,11 @@ export class Enemy {
         this._walk2.speedRatio = 2;
     }
 
+    /**
+     * 
+     * @param max 
+     * @returns randint(max) like
+     */
     private getRandomInt(max) {
         return Math.floor(Math.random() * max);
     }
