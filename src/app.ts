@@ -210,8 +210,6 @@ class App {
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
 
-        this._scene.getTextureByUniqueID(454).level = 0; //delete shadows
-
         //hitbox
         allMeshes.map(allMeshes => {
             allMeshes.checkCollisions = true;
