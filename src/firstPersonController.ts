@@ -1,13 +1,18 @@
-import { Animation, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int } from "@babylonjs/core";
+import { Animation, Tools,RayHelper, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int, _TimeToken } from "@babylonjs/core";
+import { Timeline } from "@babylonjs/inspector/components/actionTabs/tabs/propertyGrids/animations/timeline";
+import { Enemy } from "./enemy";
 
 export class FirstPersonController {
     public camera: FreeCamera;
     public scene: Scene;
     public _canvas: HTMLCanvasElement;
-    public mesh: AbstractMesh;
-    
+    public mesh: Mesh;
+    public zombie: Enemy;
+    public engine: Engine;
+    zMeshes: Array<String>;
+
     //headLight
-    private light:SpotLight;
+    private light: SpotLight;
 
     // animation trackers
     private _currentAnim: AnimationGroup = null;
@@ -27,20 +32,16 @@ export class FirstPersonController {
     private _start: AnimationGroup;
     private _walk: AnimationGroup;
 
-
-
-    constructor(scene: Scene, canvas: HTMLCanvasElement) {
+    constructor(scene: Scene, canvas: HTMLCanvasElement, zombie:Enemy) {
         this.scene = scene;
         this._canvas = canvas;
+        this.zombie = zombie;
         this.CreatePlayer();
         this.CreateController();
         this.KeyboardInput();
-
-        this.light = new SpotLight("spotLight", new Vector3(0, 1, 0), new Vector3(0, 0, 1), Math.PI / 3, 2, scene);
-        this.light.intensity = 0;
-        this.light.parent = this.camera;
+        this.setupFlashlight();
+        this.setupAllMeshes();
     }
-
 
     /**
      * create the camera which represents the player (FPS)
@@ -84,26 +85,24 @@ export class FirstPersonController {
                         case 's':
                         case 'q':
                         case 'd':
-                            this.runAnim(3,this._walk);
+                            this.runAnim(3, this._walk);
                             break;
                         case 'Shift':
-                            this.runAnim(5,this._run);
+                            this.runAnim(5, this._run);
                             break;
                         case 'Control':
-                            this.runAnim(6,this._run2);
+                            this.runAnim(6, this._run2);
                             break;
                         case 'r':
-                            this.runAnim(3,this._reloadEmpty);
+                            this.runAnim(3, this._reloadEmpty);
                             break;
                         case 'f':
-                            if(this.light.intensity == 5000)
-                            {
+                            if (this.light.intensity == 5000) {
                                 this.light.intensity = 0;
                             }
-                            else{
+                            else {
                                 this.light.intensity = 5000;
                             }
-                            
                     }
                     break;
             }
@@ -116,7 +115,7 @@ export class FirstPersonController {
                         case 's':
                         case 'q':
                         case 'd':
-                            this.runAnim(3,this._idle);
+                            this.runAnim(3, this._idle);
                             break;
                     }
                     break;
@@ -131,27 +130,66 @@ export class FirstPersonController {
         })
     }
 
+    private setupFlashlight(){
+        this.light = new SpotLight("spotLight", new Vector3(0, 1, 0), new Vector3(0, 0, 1), Math.PI / 3, 2, this.scene);
+        this.light.intensity = 0;
+        this.light.parent = this.camera;
+    }
 
-    private runAnim(speed: int, animation: AnimationGroup)
-    {
+    private setupAllMeshes() {
+        this.zMeshes = ["node8", "node10", "node12", "node14", "node16", "node18", "node20", "node22",
+            "node24", "node26", "node28", "node30", "node32", "node34",];
+    }
+
+
+    private runAnim(speed: int, animation: AnimationGroup) {
         this.camera.speed = speed;
         this._currentAnim = animation;
         this._animatePlayer();
     }
 
-    private stopAnim(){
-        if(this._prevAnim != this._walk)
-        {
-            this.runAnim(3,this._idle);
+    private stopAnim() {
+        if (this._prevAnim != this._walk) {
+            this.runAnim(3, this._idle);
         }
-        
+    }
+
+    private vecToLocal(vector, mesh) {
+        var m = mesh.getWorldMatrix();
+        var v = Vector3.TransformCoordinates(vector, m);
+        return v;
     }
 
     private fire() {
-        this.runAnim(3,this._fire);
-        this._fire.play(false);
-    }
+        var zombie = this.zombie;
+        var origin = this.camera.position;
 
+
+        var forward = new Vector3(0, 0, 1);
+        forward = this.vecToLocal(forward, this.camera);
+
+        var direction = forward.subtract(origin);
+        direction = Vector3.Normalize(direction);
+
+        var length = 100;
+
+        var ray = new Ray(origin, direction, length);
+
+        let rayHelper = new RayHelper(ray);
+        rayHelper.show(this.scene);
+
+        var hit = this.scene.pickWithRay(ray);
+        //animation
+        this.runAnim(3, this._fire);
+        this._fire.play(false);
+
+        //const idUnique = this.scene.getMeshByName("zombie").uniqueId;
+        for (let i = 0; i < this.zMeshes.length; i++) {
+            if (hit.pickedMesh.name == this.zMeshes[i]) {
+                this.zombie.die();
+            }
+        }
+    }
 
 
     private async CreatePlayer(): Promise<any> {

@@ -4,16 +4,16 @@ import { FirstPersonController } from "./FirstPersonController";
 import { Player } from "./Player";
 
 export class Enemy {
-    private currentEnemyHealth: float;
-    private damage: float;
-    private playerDamage: float;
-    private time: float;
+
+    private engine: Engine;
     private velocity: float;
+    private zombie: Enemy;
+    private isDead: Boolean;
 
     public camera: FreeCamera;
     public scene: Scene;
     public _canvas: HTMLCanvasElement;
-    public zombie: AbstractMesh;
+    public zombieMeshes: AbstractMesh;
     public enemyList: Array<Enemy>;
 
     // animation trackers
@@ -34,7 +34,8 @@ export class Enemy {
         this._canvas = canvas;
         this.velocity = velocity;
         this.spawner(difficulty);
-        this.KeyboardInput();
+        this.update();
+        //this.KeyboardInput();
     }
 
     /*private async spawner(difficulty: int): Promise<any> {
@@ -59,8 +60,7 @@ export class Enemy {
         env.position = position;
         env.scaling = new Vector3(0.02, 0.02, 0.02);
         env.name = "zombie";
-        this.zombie = env;
-
+        this.zombieMeshes = env;
 
         this._attack = this.scene.getAnimationGroupByName("Zombie@Z_Attack");
         this._fallingBack = this.scene.getAnimationGroupByName("Zombie@Z_FallingBack");
@@ -72,49 +72,48 @@ export class Enemy {
         this._setUpAnimations();
         this._animatePlayer()
 
+        allMeshes.map(allMeshes => {
+            allMeshes.checkCollisions = true;
+            allMeshes.ellipsoid = new Vector3(1, 1, 1);
+        })
+
     }
 
-    private KeyboardInput(): void {
-        this.scene.onKeyboardObservable.add((kbInfo) => {
-            switch (kbInfo.type) {
-                case KeyboardEventTypes.KEYDOWN:
-                    switch (kbInfo.event.key) {
-                        case 'z':
-                        case 's':
-                        case 'q':
-                        case 'd':
-                            this.chase(this.velocity*1.1);
-                            break;
-                        case 'Shift':
-                            this.chase(this.velocity*2);
-                            break;
-                        case 'Control':
-                            this.chase(this.velocity*3);
-                            break;
-                    }
-                    break;
+    private fixedUpdateTiming: number = 20;
+    private physicsTimeSimulated: number = Date.now();
+    private _deltaTime: number = 0;
+    private lastUpdate: number = Date.now();
+
+    private update() {
+        this.scene.onReadyObservable.addOnce(() => {
+        setInterval(() => {
+            if(!this.isDead){
+                this.chase(this.velocity);
             }
-        })
-        this.scene.onKeyboardObservable.add((kbInfo) => {
-            switch (kbInfo.type) {
-                case KeyboardEventTypes.KEYUP:
-                    switch (kbInfo.event.key) {
-                        case 'z':
-                        case 's':
-                        case 'q':
-                        case 'd':
-                        this.chase(this.velocity);
-                        this._currentAnim = this._idle;
-                    }
-                    break;
+            else {
+                clearInterval();
             }
-        })
+        }, 60);
+    })
+}
+
+    public getHit() {
+        this._currentAnim = this._fallingBack;
+        this._animatePlayer();
     }
 
-
+    public die() {
+        if (!this.isDead) {
+            this.isDead = true;
+            this.getHit();
+        }
+        else {
+            this.zombieMeshes.dispose();
+        }
+    }
 
     private chase(velocity: float) {
-        let zombie = this.zombie;
+        let zombie = this.zombieMeshes;
         let scene = this.scene;
         let camera = scene.getCameraByName("camera");
 
@@ -125,23 +124,26 @@ export class Enemy {
             let targetVec = camera.position.subtract(initVec);
             let targetVecNorm = Vector3.Normalize(targetVec);
 
-            if(distVec < 6)
-            {
+            if (distVec < 6) {
                 this.attack();
             }
             // Move enemy towards the player and stops slightly ahead
-            if (velocity >= 0.5) {
+            if (velocity >= 0.6) {
                 this._currentAnim = this._run;
                 this._animatePlayer();
             }
-            else if(velocity == 0){
+            else if (velocity == 0) {
                 this._currentAnim = this._idle;
                 this._animatePlayer();
             }
-            else if (velocity > 0 && velocity < 0.5)  {
-                
-                this._currentAnim = this._walk;
+            else if (velocity > 0 && velocity < 0.6) {
+
+                this._currentAnim = this._walk2;
                 this._animatePlayer();
+            }
+            else if (velocity < 0) {
+
+                this.attack();
             }
             distVec -= velocity;
             zombie.translate(new Vector3(targetVecNorm._x, 0, targetVecNorm._z,), velocity, Space.WORLD);
@@ -153,15 +155,14 @@ export class Enemy {
     }
 
     private attack() {
-        if(!this._attack.isPlaying)
-        this._attack.play();
+        if (!this._attack.isPlaying)
+            //this._attack.play(true);
+            this.velocity = -0.01;
         else {
-            this.velocity = 0;
-            this._attack.play();
+            //this.velocity = 0;
+            this._attack.play(true);
         }
-
     }
-
 
     private _animatePlayer(): void {
         if (this._currentAnim != null && this._prevAnim !== this._currentAnim) {

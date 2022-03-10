@@ -37,7 +37,6 @@ class App {
 
         var camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero(), this._scene);
         camera.attachControl(this._canvas, true);
-        this._scene.debugLayer.show(); //debugger
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 1), this._scene); //white light
 
         this.main();
@@ -57,6 +56,7 @@ class App {
                     break;
                 case State.GAME:
                     this._scene.render();
+                    this.KeyboardInput();
                     break;
                 case State.LOSE:
                     this._scene.render();
@@ -127,7 +127,7 @@ class App {
             medium.width = "5%";
             hard.width = "5%";
             this.difficulty = 400;
-            this.velocity = 0.1;
+            this.velocity = 0.4;
         });
 
         //medium
@@ -143,7 +143,7 @@ class App {
             medium.width = "8%";
             hard.width = "5%";
             this.difficulty = 250;
-            this.velocity = 0.3;
+            this.velocity = 0.7;
         });
 
         //hard
@@ -158,9 +158,8 @@ class App {
             medium.width = "5%";
             hard.width = "8%";
             this.difficulty = 100;
-            this.velocity = 0.5;
+            this.velocity = 1.2;
         });
-
 
         //this handles interactions with the start button attached to the scene
         startBtn.onPointerDownObservable.add(() => {
@@ -174,7 +173,6 @@ class App {
         this._scene = scene;
         this._state = State.GAME;
     }
-
 
     private async CreateMap(): Promise<void> {
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(0, 1, 0), this._scene); //white light
@@ -201,7 +199,7 @@ class App {
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
 
-        //this._scene.getTextureByUniqueID(240).level = 0; //delete shadows
+        //this._scene.getTextureByUniqueID(457).level = 0; //delete shadows
 
         //hitbox
         allMeshes.map(allMeshes => {
@@ -232,8 +230,6 @@ class App {
         })
     }
 
-
-
     /**
      * launch FirstPersonController.ts
      */
@@ -241,8 +237,8 @@ class App {
         let scene = new Scene(this._engine);
         this._gameScene = scene;
         this._scene.detachControl();
-        this.fps = new FirstPersonController(this._gameScene, this._canvas);
         this.zombie = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
+        this.fps = new FirstPersonController(this._gameScene, this._canvas,this.zombie);
         this._gameScene.onPointerDown = (evt) => {
             if (evt.button === 0)//left click
             {
