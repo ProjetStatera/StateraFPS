@@ -1,5 +1,8 @@
 <h3 align="center">Statera</h3>
 
+<img align="left" src="/public/sprites/screen.png" alt="screen" width="480" height="270">
+<img src="/public/sprites/screen2.png" alt="screen" width="480" height="270">
+
 <!-- GETTING STARTED -->
 ### Prerequisites
 
