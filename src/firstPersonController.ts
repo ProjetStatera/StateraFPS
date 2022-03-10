@@ -162,9 +162,8 @@ export class FirstPersonController {
     }
 
     private fire() {
-        var zombie = this.zombie;
+        var zombie = this.zombies;
         var origin = this.camera.position;
-
 
         var forward = new Vector3(0, 0, 1);
         forward = this.vecToLocal(forward, this.camera);
@@ -187,7 +186,7 @@ export class FirstPersonController {
         //const idUnique = this.scene.getMeshByName("zombie").uniqueId;
         for (let i = 0; i < this.zMeshes.length; i++) {
             if (hit.pickedMesh.name == this.zMeshes[i]) {
-                this.zombie.die();
+                this.zombies[0].die();
             }
         }
     }

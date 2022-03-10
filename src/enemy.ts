@@ -15,6 +15,7 @@ export class Enemy {
     public _canvas: HTMLCanvasElement;
     public zombieMeshes: AbstractMesh;
     public enemyList: Array<Enemy>;
+    private nb:int
 
     // animation trackers
     private _currentAnim: AnimationGroup = null;
@@ -38,29 +39,24 @@ export class Enemy {
         //this.KeyboardInput();
     }
 
-    /*private async spawner(difficulty: int): Promise<any> {
-        for (let i = 0; i <= 20; i++) {
-            this.enemyList[i] = new Enemy(this.scene, this._canvas, difficulty);
-        }
-        //Adding up the chase() functions of each enemy to the render observable
-        for (let i = 0; i < this.enemyList.length; i++) {
-            this.scene.onBeforeRenderObservable.add(function () { this.enemyList[i].chase(); });
-        }
-    }*/
     private async spawner(difficulty: int): Promise<any> {
-        this.CreateEnemy(new Vector3(this.getRandomInt(difficulty), 0, this.getRandomInt(difficulty)));
+        this.CreateEnemy(new Vector3(this.getRandomInt(difficulty), 0, this.getRandomInt(difficulty)),this.nb); // nb = le n zombie qui spawnera
     }
 
 
-    private async CreateEnemy(position: Vector3): Promise<any> {
+    private async CreateEnemy(position: Vector3, nb:int): Promise<any> {
         const result = await SceneLoader.ImportMeshAsync("", "./models/", "zombie.glb", this.scene);
-
+        
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
         env.position = position;
         env.scaling = new Vector3(0.02, 0.02, 0.02);
-        env.name = "zombie";
-        this.zombieMeshes = env;
+        switch(nb){
+            case 0:
+            env.name = "zombie";
+            this.zombieMeshes = env;
+
+        }
 
         this._attack = this.scene.getAnimationGroupByName("Zombie@Z_Attack");
         this._fallingBack = this.scene.getAnimationGroupByName("Zombie@Z_FallingBack");

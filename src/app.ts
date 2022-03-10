@@ -7,7 +7,7 @@ import { SkyMaterial } from "@babylonjs/materials";
 import { AdvancedDynamicTexture, StackPanel, Button, TextBlock, Rectangle, Control, Image } from "@babylonjs/gui";
 import { FirstPersonController } from "./FirstPersonController";
 import { Enemy } from "./Enemy";
-import { Engine, int, KeyboardEventTypes, Tools, ArcRotateCamera, OimoJSPlugin, SpotLight, HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager, StandardMaterial, PBRMaterial, Material, float, Light } from "@babylonjs/core";
+import { Engine, int,KeyboardEventTypes, Tools, ArcRotateCamera, OimoJSPlugin, SpotLight, HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager, StandardMaterial, PBRMaterial, Material, float, Light } from "@babylonjs/core";
 
 enum State { START = 0, GAME = 1, LOSE = 2, CUTSCENE = 3 }
 
@@ -23,7 +23,7 @@ class App {
     private _transition: boolean = false;
     private light1: Light;
     private skyboxMaterial: SkyMaterial;
-    public zombies: Array<Enemy>;
+    private zombies:Array<Enemy>;
 
     private _gameScene: Scene;
 
@@ -40,6 +40,7 @@ class App {
         camera.attachControl(this._canvas, true);
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 1), this._scene); //white light
 
+        this.zombies = []
         this.main();
     }
 
@@ -231,6 +232,17 @@ class App {
         })
     }
 
+    private createEnemies()
+    {
+        this.zombies = [new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity),
+            new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity),
+            new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity),
+            new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity),
+            new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity),
+            new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity),
+            new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity),
+        ]
+    }
     /**
      * launch FirstPersonController.ts
      */
@@ -238,16 +250,10 @@ class App {
         let scene = new Scene(this._engine);
         this._gameScene = scene;
         this._scene.detachControl();
-
-        this.zombies[0] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
-        this.zombies[1] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
-        this.zombies[2] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
-        this.zombies[3] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
-        this.zombies[4] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
-        this.zombies[5] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
-        this.zombies[6] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
+        this.createEnemies();
 
         this.fps = new FirstPersonController(this._gameScene, this._canvas,this.zombies);
+
         this._gameScene.onPointerDown = (evt) => {
             if (evt.button === 0)//left click
             {
