@@ -278,7 +278,7 @@ class App {
         this.CreateMap();
         await this._scene.whenReadyAsync();
         this._engine.hideLoadingUI();
-        this._scene.debugLayer.show();
+        //this._scene.debugLayer.show();
     }
 
     /**
