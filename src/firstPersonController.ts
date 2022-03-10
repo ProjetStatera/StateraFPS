@@ -8,6 +8,7 @@ export class FirstPersonController {
     public _canvas: HTMLCanvasElement;
     public mesh: Mesh;
     public zombie: Enemy;
+    public zombies: Array<Enemy>;
     public engine: Engine;
     zMeshes: Array<String>;
 
@@ -32,10 +33,10 @@ export class FirstPersonController {
     private _start: AnimationGroup;
     private _walk: AnimationGroup;
 
-    constructor(scene: Scene, canvas: HTMLCanvasElement, zombie:Enemy) {
+    constructor(scene: Scene, canvas: HTMLCanvasElement, zombies:Array<Enemy>) {
         this.scene = scene;
         this._canvas = canvas;
-        this.zombie = zombie;
+        this.zombies = zombies;
         this.CreatePlayer();
         this.CreateController();
         this.KeyboardInput();

@@ -125,10 +125,11 @@ export class Enemy {
             let targetVecNorm = Vector3.Normalize(targetVec);
 
             if (distVec < 6) {
+                velocity = 0;
                 this.attack();
             }
             // Move enemy towards the player and stops slightly ahead
-            if (velocity >= 0.6) {
+            else if (velocity >= 0.6) {
                 this._currentAnim = this._run;
                 this._animatePlayer();
             }
@@ -137,13 +138,8 @@ export class Enemy {
                 this._animatePlayer();
             }
             else if (velocity > 0 && velocity < 0.6) {
-
                 this._currentAnim = this._walk2;
                 this._animatePlayer();
-            }
-            else if (velocity < 0) {
-
-                this.attack();
             }
             distVec -= velocity;
             zombie.translate(new Vector3(targetVecNorm._x, 0, targetVecNorm._z,), velocity, Space.WORLD);
@@ -155,13 +151,9 @@ export class Enemy {
     }
 
     private attack() {
-        if (!this._attack.isPlaying)
-            //this._attack.play(true);
-            this.velocity = -0.01;
-        else {
-            //this.velocity = 0;
-            this._attack.play(true);
-        }
+        if (!this.isDead && !this._attack.isPlaying)
+            this._currentAnim = this._attack;
+            this._animatePlayer();
     }
 
     private _animatePlayer(): void {

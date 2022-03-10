@@ -23,6 +23,7 @@ class App {
     private _transition: boolean = false;
     private light1: Light;
     private skyboxMaterial: SkyMaterial;
+    public zombies: Array<Enemy>;
 
     private _gameScene: Scene;
 
@@ -237,8 +238,16 @@ class App {
         let scene = new Scene(this._engine);
         this._gameScene = scene;
         this._scene.detachControl();
-        this.zombie = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
-        this.fps = new FirstPersonController(this._gameScene, this._canvas,this.zombie);
+
+        this.zombies[0] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
+        this.zombies[1] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
+        this.zombies[2] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
+        this.zombies[3] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
+        this.zombies[4] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
+        this.zombies[5] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
+        this.zombies[6] = new Enemy(this._gameScene, this._canvas, this.difficulty, this.velocity);
+
+        this.fps = new FirstPersonController(this._gameScene, this._canvas,this.zombies);
         this._gameScene.onPointerDown = (evt) => {
             if (evt.button === 0)//left click
             {
