@@ -29,6 +29,6 @@
   },
   "dependencies": {
     "@babylonjs/loaders": "^4.2.1",
-    "babylonjs": "^4.2.1"
+    "@babylonjs/viewer": "^5.0.0-beta.7.1"
   }
 }

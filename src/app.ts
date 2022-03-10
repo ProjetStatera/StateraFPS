@@ -1,18 +1,29 @@
 import "@babylonjs/core/Debug/debugLayer";
-import * as GUI from "@babylonjs/gui";
-import * as MATERIAL from "@babylonjs/materials"
-import * as BABYLON from "@babylonjs/core"
-import { firstPersonController } from "./firstPersonController";
+import "@babylonjs/inspector";
+import "@babylonjs/loaders";
+
+import { SkyMaterial } from "@babylonjs/materials";
+import { AdvancedDynamicTexture, StackPanel, Button, TextBlock, Rectangle, Control, Image } from "@babylonjs/gui";
+import { FirstPersonController } from "./FirstPersonController";
+import { Enemy } from "./Enemy";
+import { Engine, int, KeyboardEventTypes, Tools, ArcRotateCamera, OimoJSPlugin, SpotLight, HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager, StandardMaterial, PBRMaterial, Material, float, Light } from "@babylonjs/core";
 
 enum State { START = 0, GAME = 1, LOSE = 2, CUTSCENE = 3 }
 
 class App {
     // General Entire Application
-    private _scene: BABYLON.Scene;
-    public _canvas: HTMLCanvasElement;
-    private _engine: BABYLON.Engine;
-    private fps: firstPersonController;
-    private _gameScene: BABYLON.Scene;
+    private _scene: Scene;
+    private _canvas: HTMLCanvasElement;
+    private _engine: Engine;
+    private _fps: FirstPersonController;
+    private _zombie: Enemy;
+    private _difficulty: int;
+    private _velocity: float;
+    private _transition: boolean = false;
+    private _light1: Light;
+    private _skyboxMaterial: SkyMaterial;
+    private _gameScene: Scene;
+    private _ambianceMusic: Sound;
 
     //Scene - related
     private _state: number = 0;
@@ -20,13 +31,12 @@ class App {
     constructor() {
         //assign the canvas and engine
         this._canvas = this._createCanvas();
-        this._engine = new BABYLON.Engine(this._canvas, true);
-        this._scene = new BABYLON.Scene(this._engine);
+        this._engine = new Engine(this._canvas, true);
+        this._scene = new Scene(this._engine);
 
-        var camera: BABYLON.ArcRotateCamera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, BABYLON.Vector3.Zero(), this._scene);
+        var camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero(), this._scene);
         camera.attachControl(this._canvas, true);
-        this._scene.debugLayer.show(); //debugger
-        var light1: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 1), this._scene); //white light
+        var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 1), this._scene); //white light
 
         this.main();
     }
@@ -45,6 +55,7 @@ class App {
                     break;
                 case State.GAME:
                     this._scene.render();
+                    this.KeyboardInput();
                     break;
                 case State.LOSE:
                     this._scene.render();
@@ -59,27 +70,30 @@ class App {
         });
     }
 
+    /**
+     * Main menu GUI
+     */
     private async goToStart() {
         this._scene.detachControl(); //dont detect any inputs from this ui while the game is loading
-        let scene = new BABYLON.Scene(this._engine);
-        scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
-        let camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 0, 0), scene);
-        camera.setTarget(BABYLON.Vector3.Zero());
+        let scene = new Scene(this._engine);
+        scene.clearColor = new Color4(0, 0, 0, 1);
+        let camera = new FreeCamera("camera1", new Vector3(0, 0, 0), scene);
+        camera.setTarget(Vector3.Zero());
 
         //create a fullscreen ui for all of our GUI elements
-        const guiMenu = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-        guiMenu.idealHeight = 1080; //fit our fullscreen ui to this height
+        const guiMenu = AdvancedDynamicTexture.CreateFullscreenUI("UI");
+        guiMenu.idealHeight = 720; //fit our fullscreen ui to this height
 
         //background image
-        const imageRect = new GUI.Rectangle("titleContainer");
+        const imageRect = new Rectangle("titleContainer");
         imageRect.width = 0.8;
         imageRect.thickness = 0;
         guiMenu.addControl(imageRect);
 
-        const startbg = new GUI.Image("startbg", "/sprites/start.jpg");
+        const startbg = new Image("startbg", "/sprites/start.jpg");
         imageRect.addControl(startbg);
 
-        const title = new GUI.TextBlock("title", "Statera");
+        const title = new TextBlock("title", "Statera");
         title.resizeToFit = true;
         title.fontFamily = "Ceviche One";
         title.fontSize = "64px";
@@ -87,19 +101,66 @@ class App {
         title.resizeToFit = true;
         title.top = "14px";
         title.width = 0.8;
-        title.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
-        title.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+        title.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+        title.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
         imageRect.addControl(title);
 
         //create a simple button
-        const startBtn = GUI.Button.CreateSimpleButton("start", "PLAY");
+        const startBtn = Button.CreateSimpleButton("start", "PLAY");
         startBtn.width = 1;
         startBtn.height = "150px";
         startBtn.color = "white";
         startBtn.top = "-14px";
         startBtn.thickness = 0;
-        startBtn.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+        startBtn.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
         guiMenu.addControl(startBtn);
+
+        // difficulties - easy
+        const easy = new Image("easy", "/sprites/easy.png");
+        easy.width = "5%";
+        easy.stretch = Image.STRETCH_UNIFORM;
+        easy.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+        easy.left = -200;
+        easy.paddingBottomInPixels = 620;
+        guiMenu.addControl(easy);
+        easy.onPointerDownObservable.add(() => {
+            easy.width = "8%";
+            medium.width = "5%";
+            hard.width = "5%";
+            this._difficulty = 400;
+            this._velocity = 0.4;
+        });
+
+        //medium
+        const medium = new Image("medium", "/sprites/medium.png");
+        medium.width = "5%";
+        medium.stretch = Image.STRETCH_UNIFORM;
+        medium.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+        medium.left = -100;
+        medium.paddingBottomInPixels = 620;
+        guiMenu.addControl(medium);
+        medium.onPointerDownObservable.add(() => {
+            easy.width = "5%";
+            medium.width = "8%";
+            hard.width = "5%";
+            this._difficulty = 250;
+            this._velocity = 0.7;
+        });
+
+        //hard
+        const hard = new Image("hard", "/sprites/hard.png");
+        hard.width = "5%";
+        hard.stretch = Image.STRETCH_UNIFORM;
+        hard.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+        hard.paddingBottomInPixels = 620;
+        guiMenu.addControl(hard);
+        hard.onPointerDownObservable.add(() => {
+            easy.width = "5%";
+            medium.width = "5%";
+            hard.width = "8%";
+            this._difficulty = 100;
+            this._velocity = 1.2;
+        });
 
         //this handles interactions with the start button attached to the scene
         startBtn.onPointerDownObservable.add(() => {
@@ -112,36 +173,44 @@ class App {
         this._scene.dispose();
         this._scene = scene;
         this._state = State.GAME;
-
     }
 
     /**
-     * Create the map
+     * generate all meshes with glb map file
      */
-    async CreateMap(): Promise<void> {
-        var light1: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), this._scene); //white light
-        light1.intensity = 1;
+    private async CreateMap(): Promise<void> {
+        var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(0, 1, 0), this._scene); //white light
+        light1.intensity = 0.05;
         light1.range = 100;
+        this._light1 = light1;
+
+        //sound         
+        this._ambianceMusic = new Sound("ambianceMusic", "sounds/music.mp3", this._scene ,null, {
+            loop: true,
+            autoplay: true,
+            volume: 0.8
+          });
 
         // Sky material
-        var skyboxMaterial = new MATERIAL.SkyMaterial("skyMaterial", this._scene);
+        var skyboxMaterial = new SkyMaterial("skyMaterial", this._scene);
         skyboxMaterial.backFaceCulling = false;
 
         // Sky mesh (box)
-        var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, this._scene);
+        var skybox = Mesh.CreateBox("skyBox", 1000.0, this._scene);
         skybox.material = skyboxMaterial;
-        skyboxMaterial.luminance = 1;
+        skyboxMaterial.luminance = 0;
+        this._skyboxMaterial = skyboxMaterial;
 
         // Manually set the sun position
-        skyboxMaterial.useSunPosition = true; // Do not set sun position from azimuth and inclination
-        skyboxMaterial.sunPosition = new BABYLON.Vector3(0, 100, 0);
+        skyboxMaterial.useSunPosition = false; // Do not set sun position from azimuth and inclination
+        skyboxMaterial.sunPosition = new Vector3(0, 100, 0);
 
-        const result = await BABYLON.SceneLoader.ImportMeshAsync("", "./models/", "SampleScene.glb", this._scene);
+        const result = await SceneLoader.ImportMeshAsync("", "./models/", "SampleScene.glb", this._scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
 
-        this._scene.getTextureByUniqueID(240).level = 0; //delete shadows
+        this._scene.getTextureByUniqueID(454).level = 0; //delete shadows
 
         //hitbox
         allMeshes.map(allMeshes => {
@@ -150,13 +219,44 @@ class App {
     }
 
     /**
-     * launch FirstPersonController.ts
+     * day/night
+     */
+    private KeyboardInput(): void {
+        this._scene.onKeyboardObservable.add((kbInfo) => {
+            switch (kbInfo.type) {
+                case KeyboardEventTypes.KEYDOWN:
+                    switch (kbInfo.event.key) {
+                        case 'n':
+                            if (this._light1.intensity != 1) {
+                                this._ambianceMusic.stop();
+                                this._skyboxMaterial.luminance = 1;
+                                this._light1.intensity = 1;
+                                this._skyboxMaterial.useSunPosition = true; // Do not set sun position from azimuth and inclination
+                                this._skyboxMaterial.sunPosition = new Vector3(0, 100, 0);
+                            } else {
+                                this._ambianceMusic.play();
+                                this._skyboxMaterial.luminance = 0;
+                                this._light1.intensity = 0.05;
+                                this._skyboxMaterial.useSunPosition = false;
+                            }
+                            break;
+                    }
+                    break;
+            }
+        })
+    }
+
+    /**
+     * launch FirstPersonController.ts and change scene to "in game" one
      */
     private async goToGame() {
-        let scene = new BABYLON.Scene(this._engine);
+        let scene = new Scene(this._engine);
         this._gameScene = scene;
         this._scene.detachControl();
-        this.fps = new firstPersonController(this._gameScene, this._canvas);
+
+        this._zombie = (new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity)); //only one zombie for testing
+        this._fps = new FirstPersonController(this._gameScene, this._canvas,this._zombie);
+
         this._gameScene.onPointerDown = (evt) => {
             if (evt.button === 0)//left click
             {
@@ -170,7 +270,7 @@ class App {
         //stable framerate for using gravity
         const framesPerSecond = 60;
         const gravity = -9.81; //earth one
-        this._gameScene.gravity = new BABYLON.Vector3(0, gravity / framesPerSecond, 0);
+        this._gameScene.gravity = new Vector3(0, gravity / framesPerSecond, 0);
         this._gameScene.collisionsEnabled = true;
         //get rid of start scene, switch to gamescene and change states
         this._scene.dispose();
@@ -183,6 +283,95 @@ class App {
         this._scene.debugLayer.show();
     }
 
+    /**
+     * If playerHealth == 0 display lose screen to retry
+     */
+    public async goToLose(): Promise<void> {
+        this._engine.displayLoadingUI();
+
+        //--SCENE SETUP--
+        this._scene.detachControl();
+        let scene = new Scene(this._engine);
+        scene.clearColor = new Color4(0, 0, 0, 1);
+        let camera = new FreeCamera("camera1", new Vector3(0, 0, 0), scene);
+        camera.setTarget(Vector3.Zero());
+
+        //--GUI--
+        const guiMenu = AdvancedDynamicTexture.CreateFullscreenUI("UI");
+        guiMenu.idealHeight = 720;
+
+        //background image
+        const image = new Image("lose", "sprites/lose.jpeg");
+        image.autoScale = true;
+        guiMenu.addControl(image);
+
+        const panel = new StackPanel();
+        guiMenu.addControl(panel);
+
+        const text = new TextBlock();
+        text.fontSize = 24;
+        text.color = "white";
+        text.height = "100px";
+        text.width = "100%";
+        panel.addControl(text);
+
+        text.textHorizontalAlignment = TextBlock.HORIZONTAL_ALIGNMENT_CENTER;
+        text.textVerticalAlignment = TextBlock.VERTICAL_ALIGNMENT_CENTER;
+        text.text = "You died !";
+        const dots = new TextBlock();
+        dots.color = "white";
+        dots.fontSize = 24;
+        dots.height = "100px";
+        dots.width = "100%";
+        dots.text = "...."
+
+        const mainBtn = Button.CreateSimpleButton("mainmenu", "MAIN MENU");
+        mainBtn.width = 0.2;
+        mainBtn.height = "40px";
+        mainBtn.color = "white";
+        panel.addControl(mainBtn);
+
+        Effect.RegisterShader("fade",
+            "precision highp float;" +
+            "varying vec2 vUV;" +
+            "uniform sampler2D textureSampler; " +
+            "uniform float fadeLevel; " +
+            "void main(void){" +
+            "vec4 baseColor = texture2D(textureSampler, vUV) * fadeLevel;" +
+            "baseColor.a = 1.0;" +
+            "gl_FragColor = baseColor;" +
+            "}");
+
+        let fadeLevel = 1.0;
+        this._transition = false;
+        scene.registerBeforeRender(() => {
+            if (this._transition) {
+                fadeLevel -= .05;
+                if (fadeLevel <= 0) {
+                    // this._goToCutScene();
+                    this.goToStart();
+                    this._transition = false;
+                }
+            }
+        })
+
+        //this handles interactions with the start button attached to the scene
+        mainBtn.onPointerUpObservable.add(() => {
+            //todo: add fade transition & selection sfx
+            scene.detachControl();
+            guiMenu.dispose();
+            // this._goToStart();
+            this._transition = true;
+        });
+
+        //--SCENE FINISHED LOADING--
+        await scene.whenReadyAsync();
+        this._engine.hideLoadingUI(); //when the scene is ready, hide loading
+        //lastly set the current state to the lose state and set the scene to the lose scene
+        this._scene.dispose();
+        this._scene = scene;
+        this._state = State.LOSE;
+    }
 
     /**
      * set up the canvas
