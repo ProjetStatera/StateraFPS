@@ -44,7 +44,7 @@ export class FirstPersonController {
         this._canvas = canvas;
         this._zombie = zombie;
         this.CreatePlayer();
-        this.CreateController();
+        this.createController();
         this.KeyboardInput();
         this.setupFlashlight();
         this.setupAllMeshes();
@@ -70,10 +70,15 @@ export class FirstPersonController {
         })
     }
 
+    private processInputData(_inputData)
+    {
+        this.m_currentState.handleInput(_inputData);
+    }
+
     /**
      * create the camera which represents the player (FPS)
      */
-    private CreateController(): void {
+    private createController(): void {
         this._camera = new FreeCamera("camera", new Vector3(0, 3, 0), this._scene);
         this._camera.attachControl(this._canvas, true);
 
