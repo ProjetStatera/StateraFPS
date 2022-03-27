@@ -55,7 +55,7 @@ class App {
                     break;
                 case State.GAME:
                     this._scene.render();
-                    this.KeyboardInput();
+                    this.keyboardInput();
                     break;
                 case State.LOSE:
                     this._scene.render();
@@ -178,7 +178,7 @@ class App {
     /**
      * generate all meshes with glb map file
      */
-    private async CreateMap(): Promise<void> {
+    private async createMap(): Promise<void> {
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(0, 1, 0), this._scene); //white light
         light1.intensity = 0.05;
         light1.range = 100;
@@ -219,7 +219,7 @@ class App {
     /**
      * day/night
      */
-    private KeyboardInput(): void {
+    private keyboardInput(): void {
         this._scene.onKeyboardObservable.add((kbInfo) => {
             switch (kbInfo.type) {
                 case KeyboardEventTypes.KEYDOWN:
@@ -275,10 +275,10 @@ class App {
         this._state = State.GAME;
         this._scene = this._gameScene;
         this._engine.displayLoadingUI();
-        this.CreateMap();
+        this.createMap();
         await this._scene.whenReadyAsync();
         this._engine.hideLoadingUI();
-        //this._scene.debugLayer.show();
+        this._scene.debugLayer.show();
     }
 
     /**

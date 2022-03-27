@@ -1,5 +1,6 @@
 import { Animation, Tools, RayHelper, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int, _TimeToken } from "@babylonjs/core";
 import { Enemy } from "./enemy";
+import { iPlayerState } from "./iPlayerState";
 
 export class FirstPersonController {
     private _camera: FreeCamera;
@@ -11,8 +12,6 @@ export class FirstPersonController {
     //sounds
     private _ak47Sound: Sound;
     private _flashlightSound: Sound;
-
-
     private _ambianceSound: Sound;
 
     //headLight
@@ -36,6 +35,9 @@ export class FirstPersonController {
     private _start: AnimationGroup;
     private _walk: AnimationGroup;
 
+    //State Pattern
+    private m_currentState:iPlayerState;
+
     //soon an Array of Enemy instead of a simple zombie
     constructor(scene: Scene, canvas: HTMLCanvasElement, zombie: Enemy) {
         this._scene = scene;
@@ -46,6 +48,26 @@ export class FirstPersonController {
         this.KeyboardInput();
         this.setupFlashlight();
         this.setupAllMeshes();
+    }
+
+    /**
+     * launched every 60ms 
+     */
+         private update() {
+            this._scene.onReadyObservable.addOnce(() => {
+            setInterval(() => {
+                var nextState = this.m_currentState.updateState(this);
+                if(nextState != null)
+                {
+                    this.m_currentState.onExit(this);
+                    this.m_currentState = nextState
+                    this.m_currentState.onEnter(this);
+                }
+                else {
+                    clearInterval();
+                }
+            }, 60);
+        })
     }
 
     /**
@@ -71,10 +93,11 @@ export class FirstPersonController {
      * @param camera this camera
      */
     ApplyMovementRules(camera: FreeCamera): void {
-        camera.keysUp.push(90);//z
+        /*camera.keysUp.push(90);//z
         camera.keysDown.push(83);//s
         camera.keysLeft.push(81)//q
-        camera.keysRight.push(68);//d
+        camera.keysRight.push(68);//d*/
+
         this._camera.minZ = 0.45;
         this._camera.speed = 2;
         this._camera.angularSensibility = 2000;
