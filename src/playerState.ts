@@ -12,7 +12,7 @@ export class IdlePlayerState extends playerState
 {
     override handleInput(_inputData):void
     {
-
+        
     }
     override updateState(_player):iPlayerState
     {
