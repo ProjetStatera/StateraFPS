@@ -92,21 +92,19 @@ export class FirstPersonController {
     private test()
     {
         this.manageAnimation(this._run2_start);
-<<<<<<< HEAD
-        Tools.DelayAsync(1000);
-        this.manageAnimation(this._run2);
-        Tools.DelayAsync(1000);
-=======
-        this.delay(1000);
-        this.manageAnimation(this._run2);
-        this.delay(1000);
->>>>>>> Adem
+        //Tools.DelayAsync(1000);
+        this._currentAnim.onAnimationEndObservable.add(()=>{
+            //this._currentAnim.stop();
+            this._currentAnim = this._run2;
+            this._currentAnim.play(this._currentAnim.loopAnimation);
+        })
+        //Tools.DelayAsync(1000);
     }
 
     private delay(ms: number) {
         return new Promise( resolve => setTimeout(resolve, ms) );
     }
-
+    
     /**
      * create the camera which represents the player (FPS)
      */
