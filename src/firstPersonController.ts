@@ -1,6 +1,5 @@
-import { Animation, Tools, RayHelper, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int, _TimeToken } from "@babylonjs/core";
+import { Animation, Tools, RayHelper, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int, _TimeToken, CameraInputTypes, WindowsMotionController } from "@babylonjs/core";
 import { Enemy } from "./enemy";
-import { iPlayerState } from "./iPlayerState";
 
 export class FirstPersonController {
     private _camera: FreeCamera;
@@ -12,6 +11,7 @@ export class FirstPersonController {
     //sounds
     private _ak47Sound: Sound;
     private _flashlightSound: Sound;
+
     private _ambianceSound: Sound;
 
     //headLight
@@ -35,8 +35,16 @@ export class FirstPersonController {
     private _start: AnimationGroup;
     private _walk: AnimationGroup;
 
-    //State Pattern
-    private m_currentState:iPlayerState;
+    //Keys
+    private zPressed: boolean = false;
+    private qPressed: boolean = false;
+    private sPressed: boolean = false;
+    private dPressed: boolean = false;
+
+    //speed
+    walkSpeed = 3;
+    runSpeed = 4;
+    sprintSpeed = 5;
 
     //soon an Array of Enemy instead of a simple zombie
     constructor(scene: Scene, canvas: HTMLCanvasElement, zombie: Enemy) {
@@ -44,41 +52,59 @@ export class FirstPersonController {
         this._canvas = canvas;
         this._zombie = zombie;
         this.CreatePlayer();
-        this.createController();
+        this.CreateController();
         this.KeyboardInput();
         this.setupFlashlight();
         this.setupAllMeshes();
+        this.update();
     }
-
     /**
      * launched every 60ms 
      */
-         private update() {
-            this._scene.onReadyObservable.addOnce(() => {
+    private update() {
+        this._scene.onReadyObservable.addOnce(() => {
             setInterval(() => {
-                var nextState = this.m_currentState.updateState(this);
-                if(nextState != null)
-                {
-                    this.m_currentState.onExit(this);
-                    this.m_currentState = nextState
-                    this.m_currentState.onEnter(this);
-                }
-                else {
-                    clearInterval();
+                switch (this._camera.speed) {
+                    case 0:
+                        this.manageAnimation(this._idle);
+                        break;
+                    case this.walkSpeed:
+                        this.manageAnimation(this._walk);
+                        break;
+                    case this.runSpeed:
+                        this.manageAnimation(this._run);
+                        break;
+                    case this.sprintSpeed:
+                        this.test();
+                        break;
+                    default:
+                        clearInterval();
                 }
             }, 60);
         })
     }
-
-    private processInputData(_inputData)
+    private manageAnimation(animation)
     {
-        this.m_currentState.handleInput(_inputData);
+        this._currentAnim = animation;
+        this._animatePlayer();
+    }
+
+    private test()
+    {
+        this.manageAnimation(this._run2_start);
+        this.delay(1000);
+        this.manageAnimation(this._run2);
+        this.delay(1000);
+    }
+
+    private delay(ms: number) {
+        return new Promise( resolve => setTimeout(resolve, ms) );
     }
 
     /**
      * create the camera which represents the player (FPS)
      */
-    private createController(): void {
+    private CreateController(): void {
         this._camera = new FreeCamera("camera", new Vector3(0, 3, 0), this._scene);
         this._camera.attachControl(this._canvas, true);
 
@@ -98,14 +124,12 @@ export class FirstPersonController {
      * @param camera this camera
      */
     ApplyMovementRules(camera: FreeCamera): void {
-        /*camera.keysUp.push(90);//z
+        camera.keysUp.push(90);//z
         camera.keysDown.push(83);//s
         camera.keysLeft.push(81)//q
-        camera.keysRight.push(68);//d*/
-
-        this._camera.minZ = 0.45;
-        this._camera.speed = 2;
-        this._camera.angularSensibility = 2000;
+        camera.keysRight.push(68);//d*
+        camera.minZ = 0.45;
+        camera.angularSensibility = 2000;
         camera.inertia = 0.1;
     }
 
@@ -115,19 +139,29 @@ export class FirstPersonController {
                 case KeyboardEventTypes.KEYDOWN:
                     switch (kbInfo.event.key) {
                         case 'z':
+                            this.zPressed = true;
+                            this.walk(this.walkSpeed);
+                            break;
                         case 's':
+                            this.sPressed = true;
+                            this.walk(this.walkSpeed);
+                            break;
                         case 'q':
+                            this.qPressed = true;
+                            this.walk(this.walkSpeed);
+                            break;
                         case 'd':
-                            this.runAnim(3, this._walk);
+                            this.dPressed = true;
+                            this.walk(this.walkSpeed);
                             break;
                         case 'Shift':
-                            this.runAnim(5, this._run);
+                            this.walk(this.runSpeed);
                             break;
                         case 'Control':
-                            this.runAnim(6, this._run2);
+                            this.walk(this.sprintSpeed);
                             break;
                         case 'r':
-                            this.runAnim(3, this._reloadEmpty);
+                            // reload
                             break;
                         case 'f':
                             this._flashlightSound.play();
@@ -146,10 +180,20 @@ export class FirstPersonController {
                 case KeyboardEventTypes.KEYUP:
                     switch (kbInfo.event.key) {
                         case 'z':
+                            this.zPressed = false;
+                            this.allUnpressed();
+                            break;
                         case 's':
+                            this.sPressed = false;
+                            this.allUnpressed();
+                            break;
                         case 'q':
+                            this.qPressed = false;
+                            this.allUnpressed();
+                            break;
                         case 'd':
-                            this.runAnim(3, this._idle);
+                            this.dPressed = false;
+                            this.allUnpressed();
                             break;
                     }
                     break;
@@ -164,6 +208,11 @@ export class FirstPersonController {
         })
     }
 
+    private allUnpressed() {
+        if (!this.zPressed && !this.qPressed && !this.sPressed && !this.dPressed) {
+            this.walk(0);
+        }
+    }
     /**
      * create the flashlight
      */
@@ -186,10 +235,8 @@ export class FirstPersonController {
      * @param speed velocity of the player
      * @param animation launch this animation
      */
-    private runAnim(speed: int, animation: AnimationGroup) {
+    private walk(speed: int) {
         this._camera.speed = speed;
-        this._currentAnim = animation;
-        this._animatePlayer();
     }
 
     /**
@@ -220,13 +267,10 @@ export class FirstPersonController {
 
         var ray = new Ray(origin, direction, length);
 
-        let rayHelper = new RayHelper(ray);
-        rayHelper.show(this._scene);
-
         var hit = this._scene.pickWithRay(ray);
-        
+
         //animation
-        this.runAnim(3, this._fire);
+        //set animation
         this._fire.play(false);
 
         for (let i = 0; i < this._zMeshes.length; i++) {
@@ -235,7 +279,6 @@ export class FirstPersonController {
             }
         }
     }
-
 
     private async CreatePlayer(): Promise<any> {
         const result = await SceneLoader.ImportMeshAsync("", "./models/", "FPS.glb", this._scene);
@@ -267,6 +310,7 @@ export class FirstPersonController {
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
         this._run2.loopAnimation = true;
+        this._run2_start.loopAnimation = false;
         this._setUpAnimations();
         this._animatePlayer();
 
