@@ -92,13 +92,10 @@ export class FirstPersonController {
     private test()
     {
         this.manageAnimation(this._run2_start);
-        //Tools.DelayAsync(1000);
         this._currentAnim.onAnimationEndObservable.add(()=>{
-            //this._currentAnim.stop();
             this._currentAnim = this._run2;
             this._currentAnim.play(this._currentAnim.loopAnimation);
         })
-        //Tools.DelayAsync(1000);
     }
 
     private delay(ms: number) {
@@ -198,6 +195,12 @@ export class FirstPersonController {
                         case 'd':
                             this.dPressed = false;
                             this.allUnpressed();
+                            break;
+                        case 'Control':
+                            this._currentAnim.loopAnimation = false;
+                            this._currentAnim = this._run2_end;
+                            this._currentAnim.play(this._currentAnim.loopAnimation);
+                            //this._animatePlayer();
                             break;
                     }
                     break;
