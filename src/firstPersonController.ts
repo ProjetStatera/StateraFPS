@@ -92,9 +92,15 @@ export class FirstPersonController {
     private test()
     {
         this.manageAnimation(this._run2_start);
+<<<<<<< HEAD
         Tools.DelayAsync(1000);
         this.manageAnimation(this._run2);
         Tools.DelayAsync(1000);
+=======
+        this.delay(1000);
+        this.manageAnimation(this._run2);
+        this.delay(1000);
+>>>>>>> Adem
     }
 
     private delay(ms: number) {
