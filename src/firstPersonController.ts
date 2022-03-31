@@ -179,6 +179,7 @@ export class FirstPersonController {
                                         this._prevAnim = this._run2_end
                                         this._currentAnim.play(this._currentAnim.loopAnimation);
                                         this.controlPressed = false;
+                                        this.walk(3.0001);
                                     }
                                 }
                             }
