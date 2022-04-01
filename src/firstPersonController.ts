@@ -1,5 +1,5 @@
 import { Animation, Tools, RayHelper, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int, _TimeToken, CameraInputTypes, WindowsMotionController } from "@babylonjs/core";
-import { Enemy } from "./Enemy";
+import { Enemy } from "./enemy";
 
 export class FirstPersonController {
     private _camera: FreeCamera;
@@ -40,7 +40,10 @@ export class FirstPersonController {
     private qPressed: boolean = false;
     private sPressed: boolean = false;
     private dPressed: boolean = false;
-    private controlPressed: boolean = false;
+    private controlPressed: boolean = false;   
+    private controlIPressed: int = 0; 
+
+
 
     //speed
     walkSpeed = 3;
@@ -76,6 +79,7 @@ export class FirstPersonController {
                         this.manageAnimation(this._run);
                         break;
                     case this.sprintSpeed:
+                        this.manageAnimationSprint();
                         break;
                     default:
                         clearInterval();
@@ -83,17 +87,70 @@ export class FirstPersonController {
             }, 60);
         })
     }
-    private manageAnimation(animation)
-    {
+    private manageAnimation(animation) {
         this._currentAnim = animation;
         this._animatePlayer();
     }
 
-
-    private delay(ms: number) {
-        return new Promise( resolve => setTimeout(resolve, ms) );
+    private manageAnimationSprint() {
+        if (this.zPressed){
+            if (this.controlPressed && this.controlIPressed===0) {
+                this._currentAnim = this._run2_start;
+                this._currentAnim.play(this._currentAnim.loopAnimation);
+                this._currentAnim.onAnimationEndObservable.add(() => {
+                    this._prevAnim = this._run2;
+                    this._currentAnim = this._run2;
+                    this._currentAnim.loopAnimation = true;
+                    this._currentAnim.play(this._currentAnim.loopAnimation);
+                })
+                this.controlIPressed=1;
+            }
+            else if (!this.controlPressed && this.controlIPressed===1) {
+                if (this._currentAnim === this._run2) {
+                    this._currentAnim.loopAnimation = false;
+                    this._currentAnim = this._run2_end;
+                    this._prevAnim = this._run2_end;
+                    this._currentAnim.play(this._currentAnim.loopAnimation);
+                    this.walk(3.001);
+                }
+                this.controlIPressed=0;
+            }
+        }
+        else if(!this.zPressed)
+        {
+            if(this.controlPressed && this.controlIPressed===0)
+            {
+                this._prevAnim = this._run2_start;
+                if(this.zPressed)
+                {
+                    this._currentAnim = this._run2_start;
+                    this._currentAnim.play(this._currentAnim.loopAnimation);
+                    this._currentAnim.onAnimationEndObservable.add(() => {
+                        this._prevAnim = this._run2;
+                        this._currentAnim = this._run2;
+                        this._currentAnim.loopAnimation = true;
+                        this._currentAnim.play(this._currentAnim.loopAnimation);
+                    })
+                }
+            }
+            else if(!this.controlPressed)
+            {
+                if (this._currentAnim === this._run2) {
+                    this._currentAnim.loopAnimation = false;
+                    this._currentAnim = this._run2_end;
+                    this._prevAnim = this._run2_end;
+                    this._currentAnim.play(this._currentAnim.loopAnimation);
+                }
+                this.controlIPressed=0;
+            }
+        }
     }
     
+
+    private delay(ms: number) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
     /**
      * create the camera which represents the player (FPS)
      */
@@ -151,34 +208,8 @@ export class FirstPersonController {
                             this.walk(this.runSpeed);
                             break;
                         case 'Control':
-                            if(this.zPressed)
-                            {
-                                this.walk(this.sprintSpeed);
-                                if(!this.controlPressed)
-                                {
-                                    this._currentAnim = this._run2_start;
-                                    this._currentAnim.play(this._currentAnim.loopAnimation);
-                                    this._currentAnim.onAnimationEndObservable.add(()=>{
-                                        this._prevAnim = this._run2_start
-                                        this._currentAnim = this._run2;
-                                        this._currentAnim.loopAnimation = true;
-                                        this._currentAnim.play(this._currentAnim.loopAnimation);
-                                    })
-                                    this.controlPressed = true;
-                                }
-                                else if(this.controlPressed)
-                                {
-                                    if(this._currentAnim === this._run2)
-                                    {
-                                        this._currentAnim.loopAnimation = false;
-                                        this._currentAnim = this._run2_end;
-                                        this._prevAnim = this._run2_end
-                                        this._currentAnim.play(this._currentAnim.loopAnimation);
-                                        this.controlPressed = false;
-                                    }
-                                }
-                            }
-                            break;
+                            this.walk(this.sprintSpeed);
+                            this.controlPressed = true;
                         case 'r':
                             // reload
                             break;
@@ -215,6 +246,7 @@ export class FirstPersonController {
                             this.allUnpressed();
                             break;
                         case 'Control':
+                            this.controlPressed = false;
                             //this._animatePlayer();
                             break;
                     }
