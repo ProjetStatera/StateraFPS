@@ -16,7 +16,6 @@ class App {
     private _canvas: HTMLCanvasElement;
     private _engine: Engine;
     private _fps: FirstPersonController;
-    private _zombie: Enemy;
     private _difficulty: int;
     private _velocity: float;
     private _transition: boolean = false;
@@ -24,6 +23,11 @@ class App {
     private _skyboxMaterial: SkyMaterial;
     private _gameScene: Scene;
     private _ambianceMusic: Sound;
+
+    //Zombies
+    private _zombies:Array<Enemy>;
+    private _zombie:Enemy;
+    
 
     //Scene - related
     private _state: number = 0;
@@ -244,6 +248,29 @@ class App {
         })
     }
 
+    private createEnemies()
+    {
+        this._zombies = 
+            [new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie0"),
+            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie1"),
+            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie2"),
+            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie3"),
+            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie4"),
+            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie5"),
+            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie6"),
+            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie7"),
+            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie8"),
+            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie9"),
+        ]
+    }
+
+    private disableEnemies(){
+        for(var zombie of this._zombies)
+        {
+            zombie.zombieMeshes.setEnabled(false);
+        }
+    }
+
     /**
      * launch FirstPersonController.ts and change scene to "in game" one
      */
@@ -251,8 +278,9 @@ class App {
         let scene = new Scene(this._engine);
         this._gameScene = scene;
         this._scene.detachControl();
+        this.createEnemies();
 
-        this._zombie = (new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity)); //only one zombie for testing
+        //this._zombie = (new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity)); //only one zombie for testing
         this._fps = new FirstPersonController(this._gameScene, this._canvas,this._zombie);
 
         this._gameScene.onPointerDown = (evt) => {
@@ -275,10 +303,15 @@ class App {
         this._state = State.GAME;
         this._scene = this._gameScene;
         this._engine.displayLoadingUI();
+        this._scene.detachControl();
         this.createMap();
         await this._scene.whenReadyAsync();
         this._engine.hideLoadingUI();
+        //AFTER LOADING
+        this._scene.attachControl();
         this._scene.debugLayer.show();
+        this.disableEnemies();
+
     }
 
     /**

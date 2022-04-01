@@ -12,6 +12,7 @@ export class Enemy {
     public scene: Scene;
     public _canvas: HTMLCanvasElement;
     public zombieMeshes: AbstractMesh;
+    public name:string;
     public enemyList: Array<Enemy>; //coming soon
 
     // animation trackers
@@ -27,10 +28,11 @@ export class Enemy {
     private _walk: AnimationGroup;
     private _walk2: AnimationGroup;
 
-    constructor(scene: Scene, canvas: HTMLCanvasElement, difficulty, velocity: int) {
+    constructor(scene: Scene, canvas: HTMLCanvasElement, difficulty, velocity: int, name:string) {
         this.scene = scene;
         this._canvas = canvas;
         this.velocity = velocity;
+        this.name = name;
         this.spawner(difficulty);
         this.update();
     }
@@ -47,7 +49,7 @@ export class Enemy {
         let allMeshes = env.getChildMeshes();
         env.position = position;
         env.scaling = new Vector3(0.02, 0.02, 0.02);
-        env.name = "zombie";
+        env.name = this.name;
         this.zombieMeshes = env;
 
         this._attack = this.scene.getAnimationGroupByName("Zombie@Z_Attack");
@@ -67,11 +69,6 @@ export class Enemy {
 
     }
 
-    private fixedUpdateTiming: number = 20;
-    private physicsTimeSimulated: number = Date.now();
-    private _deltaTime: number = 0;
-    private lastUpdate: number = Date.now();
-
     /**
      * launched every 60ms 
      */
@@ -87,6 +84,7 @@ export class Enemy {
         }, 60);
     })
 }
+
 
     public getHit() {
         this._currentAnim = this._fallingBack;

@@ -89,10 +89,6 @@ export class FirstPersonController {
         this._animatePlayer();
     }
 
-    private test()
-    {
-        
-    }
 
     private delay(ms: number) {
         return new Promise( resolve => setTimeout(resolve, ms) );
