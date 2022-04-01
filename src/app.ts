@@ -316,7 +316,6 @@ class App {
         this.disableEnemies();
         this._round = new Round(this._scene,this._canvas,this._light1,this._skyboxMaterial,this._ambianceMusic);
         this._round.day();
-
     }
 
     /**
