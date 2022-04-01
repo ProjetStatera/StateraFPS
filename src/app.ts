@@ -7,6 +7,7 @@ import { AdvancedDynamicTexture, StackPanel, Button, TextBlock, Rectangle, Contr
 import { FirstPersonController } from "./FirstPersonController";
 import { Enemy } from "./Enemy";
 import { Engine, int, KeyboardEventTypes, Tools, ArcRotateCamera, OimoJSPlugin, SpotLight, HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager, StandardMaterial, PBRMaterial, Material, float, Light } from "@babylonjs/core";
+import { Round } from "./Round";
 
 enum State { START = 0, GAME = 1, LOSE = 2, CUTSCENE = 3 }
 
@@ -23,6 +24,7 @@ class App {
     private _skyboxMaterial: SkyMaterial;
     private _gameScene: Scene;
     private _ambianceMusic: Sound;
+    private _round: Round;
 
     //Zombies
     private _zombies:Array<Enemy>;
@@ -229,7 +231,7 @@ class App {
                 case KeyboardEventTypes.KEYDOWN:
                     switch (kbInfo.event.key) {
                         case 'n':
-                            if (this._light1.intensity != 1) {
+                            /*if (this._light1.intensity != 1) {
                                 this._ambianceMusic.stop();
                                 this._skyboxMaterial.luminance = 1;
                                 this._light1.intensity = 1;
@@ -240,7 +242,8 @@ class App {
                                 this._skyboxMaterial.luminance = 0;
                                 this._light1.intensity = 0.05;
                                 this._skyboxMaterial.useSunPosition = false;
-                            }
+                            }*/
+                            this._round.day();
                             break;
                     }
                     break;
@@ -302,8 +305,8 @@ class App {
         this._scene.dispose();
         this._state = State.GAME;
         this._scene = this._gameScene;
-        this._engine.displayLoadingUI();
         this._scene.detachControl();
+        this._engine.displayLoadingUI();
         this.createMap();
         await this._scene.whenReadyAsync();
         this._engine.hideLoadingUI();
@@ -311,6 +314,8 @@ class App {
         this._scene.attachControl();
         this._scene.debugLayer.show();
         this.disableEnemies();
+        this._round = new Round(this._scene,this._canvas,this._light1,this._skyboxMaterial,this._ambianceMusic);
+        this._round.day();
 
     }
 
