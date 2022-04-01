@@ -94,7 +94,6 @@ export class FirstPersonController {
 
     private manageAnimationSprint() {
         if (this.zPressed){
-
             if (this.controlPressed && this.controlIPressed===0) {
                 this._currentAnim = this._run2_start;
                 this._currentAnim.play(this._currentAnim.loopAnimation);
@@ -114,9 +113,6 @@ export class FirstPersonController {
                     this._currentAnim.play(this._currentAnim.loopAnimation);
                     this.walk(3.001);
                 }
-                else{
-                    this._currentAnim.loopAnimation = false;
-                }
                 this.controlIPressed=0;
             }
         }
@@ -124,10 +120,20 @@ export class FirstPersonController {
         {
             if(this.controlPressed && this.controlIPressed===0)
             {
-                this.controlIPressed=1;
                 this._prevAnim = this._run2_start;
+                if(this.zPressed)
+                {
+                    this._currentAnim = this._run2_start;
+                    this._currentAnim.play(this._currentAnim.loopAnimation);
+                    this._currentAnim.onAnimationEndObservable.add(() => {
+                        this._prevAnim = this._run2;
+                        this._currentAnim = this._run2;
+                        this._currentAnim.loopAnimation = true;
+                        this._currentAnim.play(this._currentAnim.loopAnimation);
+                    })
+                }
             }
-            else if(!this.controlPressed && this.controlIPressed===1)
+            else if(!this.controlPressed)
             {
                 if (this._currentAnim === this._run2) {
                     this._currentAnim.loopAnimation = false;
