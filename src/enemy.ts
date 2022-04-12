@@ -28,7 +28,7 @@ export class Enemy {
     private _walk: AnimationGroup;
     private _walk2: AnimationGroup;
 
-    constructor(scene: Scene, canvas: HTMLCanvasElement, difficulty, velocity: int, name:string) {
+    constructor(scene: Scene, canvas: HTMLCanvasElement, difficulty, velocity: int, name: string) {
         this.scene = scene;
         this._canvas = canvas;
         this.velocity = velocity;
@@ -51,7 +51,6 @@ export class Enemy {
         env.scaling = new Vector3(0.02, 0.02, 0.02);
         env.name = this.name;
         this.zombieMeshes = env;
-
         this._attack = this.scene.getAnimationGroupByName("Zombie@Z_Attack");
         this._fallingBack = this.scene.getAnimationGroupByName("Zombie@Z_FallingBack");
         this._fallingForward = this.scene.getAnimationGroupByName("Zombie@Z_FallingForward");
@@ -95,9 +94,7 @@ export class Enemy {
         if (!this.isDead) {
             this.isDead = true;
             this.getHit();
-        }
-        else {
-            this.zombieMeshes.dispose();
+            this.zombieMeshes.setEnabled(false);
         }
     }
 

@@ -23,16 +23,16 @@ export class Round{
             this._light1.intensity = 1;
             this._skyboxMaterial.useSunPosition = true; // Do not set sun position from azimuth and inclination
             this._skyboxMaterial.sunPosition = new Vector3(0, 100, 0);
-            await Tools.DelayAsync(1000);
+            await Tools.DelayAsync(1000000000);
             this.night();
     }
-
+ 
     public async night(){
         this._ambianceMusic.play();
             this._skyboxMaterial.luminance = 0;
             this._light1.intensity = 0.05;
             this._skyboxMaterial.useSunPosition = false;
-            await Tools.DelayAsync(1000);
+            await Tools.DelayAsync(100000000);
             this.day();
     }
 }
