@@ -1,4 +1,4 @@
-import { Animation, Tools, RayHelper, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int, _TimeToken, CameraInputTypes, WindowsMotionController } from "@babylonjs/core";
+import { Animation, Tools, RayHelper, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int, _TimeToken, CameraInputTypes, WindowsMotionController, Camera } from "@babylonjs/core";
 import { Enemy } from "./enemy";
 
 export class FirstPersonController {
@@ -92,11 +92,30 @@ export class FirstPersonController {
     private manageAnimation(animation) {
         this._currentAnim = animation;
         this._animatePlayer();
+        if(this.controlPressed)
+        {
+            this.controlIPressed=0;
+        }
+        if(this._currentAnim===this._run2)
+        {
+            this._currentAnim.loopAnimation=false;
+            if(this.zPressed){
+                this._currentAnim.onAnimationEndObservable.add(()=>{
+                    this._currentAnim===this._walk;
+                })
+            }
+            else
+            {
+                this._currentAnim.onAnimationEndObservable.add(()=>{
+                    this._currentAnim===this._idle;
+                })
+            }
+        }
     }
 
     private manageAnimationSprint() {
         if (this.zPressed){
-            if (this.controlPressed && this.controlIPressed===0) {
+            if (this.controlPressed && this.controlIPressed===0 && !this.qPressed && !this.dPressed) {
                 this._currentAnim = this._run2_start;
                 this._currentAnim.play(this._currentAnim.loopAnimation);
                 this._currentAnim.onAnimationEndObservable.add(() => {
@@ -107,13 +126,25 @@ export class FirstPersonController {
                 })
                 this.controlIPressed=1;
             }
-            else if (!this.controlPressed && this.controlIPressed===1) {
-                if (this._currentAnim === this._run2) {
+            if (!this.controlPressed && this.controlIPressed===1) {
+                if (this._currentAnim === this._run2 || this._currentAnim===this._run2_start) {
                     this._currentAnim.loopAnimation = false;
-                    this._currentAnim = this._run2_end;
-                    this._prevAnim = this._run2_end;
-                    this._currentAnim.play(this._currentAnim.loopAnimation);
-                    this.walk(3.001);
+                    this._currentAnim.onAnimationEndObservable.add(()=>{
+                        this._currentAnim = this._run2_end;
+                        this._prevAnim = this._run2_end;
+                        this._currentAnim.play(this._currentAnim.loopAnimation);
+                        this.walk(3.001);
+                        this._currentAnim.onAnimationEndObservable.add(()=>{
+                            if(this.zPressed)
+                            {
+                                this.walk(3);
+                            }
+                            else if(!this.zPressed)
+                            {
+                                this.walk(0);
+                            }
+                        })
+                    })
                 }
                 this.controlIPressed=0;
             }
@@ -135,13 +166,26 @@ export class FirstPersonController {
                     })
                 }
             }
-            else if(!this.controlPressed)
+            if(!this.controlPressed)
             {
-                if (this._currentAnim === this._run2) {
+                if (this._currentAnim === this._run2 || this._currentAnim===this._run2_start) {
                     this._currentAnim.loopAnimation = false;
-                    this._currentAnim = this._run2_end;
-                    this._prevAnim = this._run2_end;
-                    this._currentAnim.play(this._currentAnim.loopAnimation);
+                    this._currentAnim.onAnimationEndObservable.add(()=>{
+                        this._currentAnim = this._run2_end;
+                        this._prevAnim = this._run2_end;
+                        this._currentAnim.play(this._currentAnim.loopAnimation);
+                        this.walk(3.001);
+                        this._currentAnim.onAnimationEndObservable.add(()=>{
+                            if(this.zPressed)
+                            {
+                                this.walk(3);
+                            }
+                            else if(!this.zPressed)
+                            {
+                                this.walk(0);
+                            }
+                        })
+                    })
                 }
                 this.controlIPressed=0;
             }
@@ -193,6 +237,10 @@ export class FirstPersonController {
                         case 'z':
                             this.zPressed = true;
                             this.walk(this.walkSpeed);
+                            if(this.controlPressed)
+                            {
+                                this.walk(this.sprintSpeed);
+                            }
                             break;
                         case 's':
                             this.sPressed = true;
@@ -210,8 +258,12 @@ export class FirstPersonController {
                             this.walk(this.runSpeed);
                             break;
                         case 'Control':
-                            this.walk(this.sprintSpeed);
-                            this.controlPressed = true;
+                            if(!this.qPressed && !this.dPressed)
+                            {
+                                this.walk(this.sprintSpeed);
+                                this.controlPressed = true;
+                            }
+                    
                         case 'r':
                             // reload
                             break;
@@ -249,6 +301,7 @@ export class FirstPersonController {
                             break;
                         case 'Control':
                             this.controlPressed = false;
+                            this.allUnpressed();
                             //this._animatePlayer();
                             break;
                     }
@@ -267,6 +320,10 @@ export class FirstPersonController {
     private allUnpressed() {
         if (!this.zPressed && !this.qPressed && !this.sPressed && !this.dPressed) {
             this.walk(0);
+        }
+        if(this.controlPressed && this.zPressed)
+        {
+            this.walk(this.sprintSpeed);
         }
     }
     /**
