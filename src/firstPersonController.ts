@@ -399,38 +399,38 @@ export class FirstPersonController {
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
         env.parent = this._camera;
-        for(let i = 1; i < 7; i++)
+        /*for(let i = 1; i < 7; i++)
         {
             result.meshes[i].renderingGroupId = 2;
-        }
-        result.meshes[0].position = new Vector3(0, -6.70, 1);
-        result.meshes[0].rotation = new Vector3(0, 0, 0);
-        result.meshes[0].scaling = new Vector3(4, 4, -3);
+        }*/
+        env.position = new Vector3(0, -6.70, 1);
+        env.rotation = new Vector3(0, 0, 0);
+        env.scaling = new Vector3(4, 4, -3);
 
         //audio effect 
         this._ak47Sound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
         this._flashlightSound = new Sound("flashlightSound", "sounds/flashlight.mp3", this._scene);
         
         //animations
-        /*this._end = this._scene.getAnimationGroupByName("metarig|end");
+        this._end = this._scene.getAnimationGroupByName("metarig|end");
         this._fire = this._scene.getAnimationGroupByName("metarig|Fire");
-        this._idle = this._scene.getAnimationGroupByName("metarig|idle");
+        this._idle = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Idle");
         this._reload = this._scene.getAnimationGroupByName("metarig|Reload");
         this._reloadEmpty = this._scene.getAnimationGroupByName("metarig|Reload_empty");
         this._reloadEmpty2 = this._scene.getAnimationGroupByName("metarig|Reload_empty2");
-        this._run = this._scene.getAnimationGroupByName("metarig|run");
+        this._run = this._scene.getAnimationGroupByName("mHands_Automatic_rifle.Run");
         this._run2 = this._scene.getAnimationGroupByName("metarig|run2");
         this._run2_end = this._scene.getAnimationGroupByName("metarig|run2_end");
         this._run2_start = this._scene.getAnimationGroupByName("metarig|run2_start");
         this._start = this._scene.getAnimationGroupByName("metarig|start");
-        this._walk = this._scene.getAnimationGroupByName("metarig|walk");*/
-        /*this._run.loopAnimation = true;
+        this._walk = this._scene.getAnimationGroupByName("metarig|walk");
+        this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
         this._run2.loopAnimation = true;
         this._run2_start.loopAnimation = false;
         this._setUpAnimations();
-        this._animatePlayer();*/
+        this._animatePlayer();
 
         //physics rules
         const framesPerSecond = 60;
