@@ -99,17 +99,14 @@ export class FirstPersonController {
         if(this._currentAnim===this._run2)
         {
             this._currentAnim.loopAnimation=false;
-            if(this.zPressed){
-                this._currentAnim.onAnimationEndObservable.add(()=>{
-                    this._currentAnim===this._walk;
-                })
-            }
-            else
-            {
+            this._currentAnim=this._walk;
+            this._animatePlayer();
+            /*else
+            { 
                 this._currentAnim.onAnimationEndObservable.add(()=>{
                     this._currentAnim===this._idle;
                 })
-            }
+            }*/
         }
     }
 
@@ -119,10 +116,14 @@ export class FirstPersonController {
                 this._currentAnim = this._run2_start;
                 this._currentAnim.play(this._currentAnim.loopAnimation);
                 this._currentAnim.onAnimationEndObservable.add(() => {
-                    this._prevAnim = this._run2;
-                    this._currentAnim = this._run2;
-                    this._currentAnim.loopAnimation = true;
-                    this._currentAnim.play(this._currentAnim.loopAnimation);
+                    if(this.controlPressed)
+                    {
+                        this._prevAnim = this._run2;
+                        this._currentAnim = this._run2;
+                        this._currentAnim.loopAnimation = true;
+                        this._currentAnim.play(this._currentAnim.loopAnimation);
+                    }
+                   
                 })
                 this.controlIPressed=1;
             }
