@@ -68,7 +68,7 @@ export class FirstPersonController {
      * launched every 60ms 
      */
     private update() {
-        this._scene.onReadyObservable.addOnce(() => {
+        this._scene.onReadyObservable.add(() => {
             setInterval(() => {
                 switch (this._camera.speed) {
                     case 0:
@@ -92,7 +92,7 @@ export class FirstPersonController {
     private manageAnimation(animation) {
         this._currentAnim = animation;
         this._animatePlayer();
-        if(this.controlPressed)
+        /*if(this.controlPressed)
         {
             this.controlIPressed=0;
         }
@@ -110,7 +110,7 @@ export class FirstPersonController {
                     this._currentAnim===this._idle;
                 })
             }
-        }
+        }*/
     }
 
     private manageAnimationSprint() {
