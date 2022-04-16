@@ -70,6 +70,7 @@ export class FirstPersonController {
     private update() {
         this._scene.onReadyObservable.addOnce(() => {
             setInterval(() => {
+                console.log("test");
                 switch (this._camera.speed) {
                     case 0:
                         this.manageAnimation(this._idle);
@@ -401,10 +402,10 @@ export class FirstPersonController {
         env.parent = this._camera;
         env.position = new Vector3(0, -0.1, 0);
         env.scaling = new Vector3(0.3, 0.3, -0.3);
-        /*for(let i = 1; i < 7; i++)
+        for(let i = 1; i < 4; i++)
         {
             result.meshes[i].renderingGroupId = 2;
-        }
+        }/*
         result.meshes[0].position = new Vector3(0, -6.70, 1);
         result.meshes[0].rotation = new Vector3(0, 0, 0);
         result.meshes[0].scaling = new Vector3(4, 4, -3);*/
