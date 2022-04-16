@@ -302,7 +302,6 @@ export class FirstPersonController {
                         case 'Control':
                             this.controlPressed = false;
                             this.allUnpressed();
-                            //this._animatePlayer();
                             break;
                     }
                     break;
@@ -394,18 +393,20 @@ export class FirstPersonController {
     }
 
     private async CreatePlayer(): Promise<any> {
-        const result = await SceneLoader.ImportMeshAsync("", "./models/", "FPS.glb", this._scene);
+        const result = await SceneLoader.ImportMeshAsync("", "./models/", "ak.glb", this._scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
         env.parent = this._camera;
+        env.position = new Vector3(0, -0.1, 0);
+        env.scaling = new Vector3(0.3, 0.3, -0.3);
         /*for(let i = 1; i < 7; i++)
         {
             result.meshes[i].renderingGroupId = 2;
-        }*/
-        env.position = new Vector3(0, -6.70, 1);
-        env.rotation = new Vector3(0, 0, 0);
-        env.scaling = new Vector3(4, 4, -3);
+        }
+        result.meshes[0].position = new Vector3(0, -6.70, 1);
+        result.meshes[0].rotation = new Vector3(0, 0, 0);
+        result.meshes[0].scaling = new Vector3(4, 4, -3);*/
 
         //audio effect 
         this._ak47Sound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
@@ -414,11 +415,11 @@ export class FirstPersonController {
         //animations
         this._end = this._scene.getAnimationGroupByName("metarig|end");
         this._fire = this._scene.getAnimationGroupByName("metarig|Fire");
-        this._idle = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Idle");
+        this._idle = this._scene.getAnimationGroupByName("metarig|idle");
         this._reload = this._scene.getAnimationGroupByName("metarig|Reload");
         this._reloadEmpty = this._scene.getAnimationGroupByName("metarig|Reload_empty");
         this._reloadEmpty2 = this._scene.getAnimationGroupByName("metarig|Reload_empty2");
-        this._run = this._scene.getAnimationGroupByName("mHands_Automatic_rifle.Run");
+        this._run = this._scene.getAnimationGroupByName("metarig|run");
         this._run2 = this._scene.getAnimationGroupByName("metarig|run2");
         this._run2_end = this._scene.getAnimationGroupByName("metarig|run2_end");
         this._run2_start = this._scene.getAnimationGroupByName("metarig|run2_start");
