@@ -1,6 +1,6 @@
 import * as BabylonViewer from '@babylonjs/viewer';
 import { Engine, Tools, KeyboardEventTypes, Space, AnimationGroup, int, AbstractMesh, float, ArcRotateCamera, OimoJSPlugin, SpotLight, HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager, StandardMaterial, PBRMaterial, Material } from "@babylonjs/core";
-import { AkController } from "./akController";
+import { FPSController } from "./FPSController";
 import { Player } from "./Player";
 
 export class Enemy {

@@ -4,8 +4,7 @@ import "@babylonjs/loaders";
 
 import { SkyMaterial } from "@babylonjs/materials";
 import { AdvancedDynamicTexture, StackPanel, Button, TextBlock, Rectangle, Control, Image } from "@babylonjs/gui";
-import { AkController } from "./akController";
-import { ScarController } from "./scarController";
+import { FPSController } from "./FPSController";
 import { Enemy } from "./Enemy";
 import { Engine, int, KeyboardEventTypes, Tools, ArcRotateCamera, OimoJSPlugin, SpotLight, HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager, StandardMaterial, PBRMaterial, Material, float, Light } from "@babylonjs/core";
 import { Round } from "./Round";
@@ -17,7 +16,6 @@ class App {
     private _scene: Scene;
     private _canvas: HTMLCanvasElement;
     private _engine: Engine;
-    private _ak: AkController;
     private _difficulty: int;
     private _velocity: float;
     private _transition: boolean = false;
@@ -27,11 +25,13 @@ class App {
     private _ambianceMusic: Sound;
     private _round: Round;
 
+    //all weapons
+    private _fps: FPSController;
+
     //Zombies
     private _zombies:Array<Enemy>;
     private _zombie:Enemy;
     
-
     //Scene - related
     private _state: number = 0;
 
@@ -232,18 +232,6 @@ class App {
                 case KeyboardEventTypes.KEYDOWN:
                     switch (kbInfo.event.key) {
                         case 'n':
-                            /*if (this._light1.intensity != 1) {
-                                this._ambianceMusic.stop();
-                                this._skyboxMaterial.luminance = 1;
-                                this._light1.intensity = 1;
-                                this._skyboxMaterial.useSunPosition = true; // Do not set sun position from azimuth and inclination
-                                this._skyboxMaterial.sunPosition = new Vector3(0, 100, 0);
-                            } else {
-                                this._ambianceMusic.play();
-                                this._skyboxMaterial.luminance = 0;
-                                this._light1.intensity = 0.05;
-                                this._skyboxMaterial.useSunPosition = false;
-                            }*/
                             this._round.day();
                             break;
                     }
@@ -283,9 +271,7 @@ class App {
         this._gameScene = scene;
         this._scene.detachControl();
         this.createEnemies();
-
-        //this._zombie = (new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity)); //only one zombie for testing
-        this._ak = new AkController(this._gameScene, this._canvas,this._zombie);
+        this._fps = new FPSController(this._gameScene, this._canvas,this._zombie);
 
         this._gameScene.onPointerDown = (evt) => {
             if (evt.button === 0)//left click

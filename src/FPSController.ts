@@ -1,13 +1,16 @@
 import { Animation, Tools, RayHelper, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int, _TimeToken, CameraInputTypes, WindowsMotionController, Camera } from "@babylonjs/core";
-import { Enemy } from "./enemy";
+import { Enemy } from "./Enemy";
 
-export class AkController {
+export class FPSController {
     private _camera: FreeCamera;
     private _scene: Scene;
     private _canvas: HTMLCanvasElement;
     private _zombie: Enemy;
-    private meshes: AbstractMesh;
     private _zMeshes: Array<String>;
+
+    //weapon
+    private _ak: AbstractMesh;
+    private _scar: AbstractMesh;
 
     //sounds
     private _ak47Sound: Sound;
@@ -35,13 +38,16 @@ export class AkController {
     private _run2_start: AnimationGroup;
     private _start: AnimationGroup;
     private _walk: AnimationGroup;
+    private _aim_walk: AnimationGroup;
+    private _aim_shot: AnimationGroup;
+    private _aim_idle: AnimationGroup;
 
     //Keys
     private zPressed: boolean = false;
     private qPressed: boolean = false;
     private sPressed: boolean = false;
     private dPressed: boolean = false;
-    private controlPressed: boolean = false;   
+    private controlPressed: boolean = false; 
     private controlIPressed: int = 0; 
 
 
@@ -61,7 +67,6 @@ export class AkController {
         this.KeyboardInput();
         this.setupFlashlight();
         this.setupAllMeshes();
-        //this.setPosition();
         this.update();
     }
     /**
@@ -70,7 +75,6 @@ export class AkController {
     private update() {
         this._scene.onReadyObservable.addOnce(() => {
             setInterval(() => {
-                console.log("test");
                 switch (this._camera.speed) {
                     case 0:
                         this.manageAnimation(this._idle);
@@ -102,12 +106,6 @@ export class AkController {
             this._currentAnim.loopAnimation=false;
             this._currentAnim=this._walk;
             this._animatePlayer();
-            /*else
-            { 
-                this._currentAnim.onAnimationEndObservable.add(()=>{
-                    this._currentAnim===this._idle;
-                })
-            }*/
         }
     }
 
@@ -193,11 +191,6 @@ export class AkController {
             }
         }
     }
-    
-
-    private delay(ms: number) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
 
     /**
      * create the camera which represents the player (FPS)
@@ -231,6 +224,12 @@ export class AkController {
         camera.inertia = 0.1;
     }
 
+    private swap(lastWeapon){
+        lastWeapon.dispose();
+        this.CreateScar();
+
+    }
+
     private KeyboardInput(): void {
         this._scene.onKeyboardObservable.add((kbInfo) => {
             switch (kbInfo.type) {
@@ -257,7 +256,7 @@ export class AkController {
                             this.walk(this.walkSpeed);
                             break;
                         case 'Shift':
-                            this.walk(this.runSpeed);
+                                this.walk(this.runSpeed);                            
                             break;
                         case 'Control':
                             if(!this.qPressed && !this.dPressed)
@@ -265,7 +264,7 @@ export class AkController {
                                 this.walk(this.sprintSpeed);
                                 this.controlPressed = true;
                             }
-                    
+                            break;
                         case 'r':
                             // reload
                             break;
@@ -277,6 +276,10 @@ export class AkController {
                             else {
                                 this._light.intensity = 5000;
                             }
+                        case 'p':
+                            this.swap(this._ak);
+                            break;
+
                     }
                     break;
             }
@@ -305,6 +308,9 @@ export class AkController {
                             this.controlPressed = false;
                             this.allUnpressed();
                             break;
+                        case 'Shift':
+                            this.allUnpressed();
+                            break;
                     }
                     break;
             }
@@ -319,13 +325,13 @@ export class AkController {
     }
 
     private allUnpressed() {
-        if (!this.zPressed && !this.qPressed && !this.sPressed && !this.dPressed) {
-            this.walk(0);
-        }
         if(this.controlPressed && this.zPressed)
         {
             this.walk(this.sprintSpeed);
         }
+        if (!this.zPressed && !this.qPressed && !this.sPressed && !this.dPressed) {
+            this.walk(0);
+        }        
     }
     /**
      * create the flashlight
@@ -400,15 +406,13 @@ export class AkController {
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
         env.parent = this._camera;
+        this._ak = env;
         env.position = new Vector3(0, -0.1, 0);
         env.scaling = new Vector3(0.3, 0.3, -0.3);
         for(let i = 1; i < 4; i++)
         {
             result.meshes[i].renderingGroupId = 2;
-        }/*
-        result.meshes[0].position = new Vector3(0, -6.70, 1);
-        result.meshes[0].rotation = new Vector3(0, 0, 0);
-        result.meshes[0].scaling = new Vector3(4, 4, -3);*/
+        }
 
         //audio effect 
         this._ak47Sound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
@@ -435,15 +439,51 @@ export class AkController {
         this._setUpAnimations();
         this._animatePlayer();
 
-        //physics rules
-        const framesPerSecond = 60;
-        const gravity = -9.81; //earth one
-        this._scene.enablePhysics(new Vector3(0, gravity / framesPerSecond, 0), new OimoJSPlugin());
+        return {
+            mesh: env as Mesh,
+            animationGroups: result.animationGroups
+        }
+    }
 
-        allMeshes.map(allMeshes => {
+    private async CreateScar(): Promise<any> {
+        const result = await SceneLoader.ImportMeshAsync("", "./models/", "scar.glb", this._scene);
+
+        let env = result.meshes[0];
+        let allMeshes = env.getChildMeshes();
+        env.parent = this._camera;
+        this._scar = env;
+        for(let i = 1; i < 4; i++)
+        {
+            result.meshes[i].renderingGroupId = 2;
+        }
+        result.meshes[0].position = new Vector3(0, -6.70, 1);
+        result.meshes[0].rotation = new Vector3(0, 0, 0);
+        result.meshes[0].scaling = new Vector3(4, 4, -3);
+
+        //audio effect 
+        this._ak47Sound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
+        
+        //animations
+        this._end = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Hide");
+        this._fire = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Singl_Shot");
+        this._idle = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Idle");
+        this._reload = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Recharge");
+        this._run = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Run");
+        this._start = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Get");
+        this._walk = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Walk");
+        this._aim_walk = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Aiming_Walk");
+        this._aim_shot = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Aiming_Shot");
+        this._aim_idle = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Aiming_Idle");
+        this._run.loopAnimation = true;
+        this._idle.loopAnimation = true;
+        this._walk.loopAnimation = true;
+        this._setUpAnimations();
+        this._animatePlayer();
+
+        /*allMeshes.map(allMeshes => {
             allMeshes.checkCollisions = true;
             allMeshes.ellipsoid = new Vector3(1, 1, 1);
-        })
+        })*/
 
         return {
             mesh: env as Mesh,
@@ -453,7 +493,6 @@ export class AkController {
 
     private _setUpAnimations(): void {
         this._scene.stopAllAnimations();
-
         //initialize current and previous
         this._currentAnim = this._start;
         this._prevAnim = this._end;
