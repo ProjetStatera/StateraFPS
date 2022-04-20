@@ -75,4 +75,3 @@ typings/
 
 #vscode
 .vscode
-dist/js/bundleName.js
