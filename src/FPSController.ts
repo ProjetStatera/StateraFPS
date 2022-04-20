@@ -49,6 +49,7 @@ export class FPSController {
     private dPressed: boolean = false;
     private controlPressed: boolean = false; 
     private controlIPressed: int = 0; 
+    private rightClickPressed: boolean = false;
 
 
 
@@ -318,7 +319,15 @@ export class FPSController {
         this._scene.onPointerObservable.add((pointerInfo) => {
             switch (pointerInfo.type) {
                 case PointerEventTypes.POINTERDOWN:
-                    this.fire();
+                    if(pointerInfo.event.button === 0)
+                    {
+                        this.fire();
+                    }
+                    else if(pointerInfo.event.button == 2)
+                    {
+                        this.rightClickPressed=true;
+                        this.fire();
+                    }
                     break;
             }
         })
@@ -391,7 +400,14 @@ export class FPSController {
 
         //animation
         //set animation
-        this._fire.play(false);
+        if(!this.rightClickPressed)
+        {
+            this._fire.play(false);
+        }
+        else{
+            this._aim_shot.play(false);
+            this.rightClickPressed=false;
+        }
 
         for (let i = 0; i < this._zMeshes.length; i++) {
             if (hit.pickedMesh.name == this._zMeshes[i]) {
