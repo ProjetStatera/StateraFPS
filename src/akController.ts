@@ -1,7 +1,7 @@
 import { Animation, Tools, RayHelper, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int, _TimeToken, CameraInputTypes, WindowsMotionController, Camera } from "@babylonjs/core";
 import { Enemy } from "./enemy";
 
-export class FirstPersonController {
+export class AkController {
     private _camera: FreeCamera;
     private _scene: Scene;
     private _canvas: HTMLCanvasElement;
@@ -68,8 +68,9 @@ export class FirstPersonController {
      * launched every 60ms 
      */
     private update() {
-        this._scene.onReadyObservable.add(() => {
+        this._scene.onReadyObservable.addOnce(() => {
             setInterval(() => {
+                console.log("test");
                 switch (this._camera.speed) {
                     case 0:
                         this.manageAnimation(this._idle);
@@ -92,25 +93,22 @@ export class FirstPersonController {
     private manageAnimation(animation) {
         this._currentAnim = animation;
         this._animatePlayer();
-        /*if(this.controlPressed)
+        if(this.controlPressed)
         {
             this.controlIPressed=0;
         }
         if(this._currentAnim===this._run2)
         {
             this._currentAnim.loopAnimation=false;
-            if(this.zPressed){
-                this._currentAnim.onAnimationEndObservable.add(()=>{
-                    this._currentAnim===this._walk;
-                })
-            }
-            else
-            {
+            this._currentAnim=this._walk;
+            this._animatePlayer();
+            /*else
+            { 
                 this._currentAnim.onAnimationEndObservable.add(()=>{
                     this._currentAnim===this._idle;
                 })
-            }
-        }*/
+            }*/
+        }
     }
 
     private manageAnimationSprint() {
@@ -119,10 +117,14 @@ export class FirstPersonController {
                 this._currentAnim = this._run2_start;
                 this._currentAnim.play(this._currentAnim.loopAnimation);
                 this._currentAnim.onAnimationEndObservable.add(() => {
-                    this._prevAnim = this._run2;
-                    this._currentAnim = this._run2;
-                    this._currentAnim.loopAnimation = true;
-                    this._currentAnim.play(this._currentAnim.loopAnimation);
+                    if(this.controlPressed)
+                    {
+                        this._prevAnim = this._run2;
+                        this._currentAnim = this._run2;
+                        this._currentAnim.loopAnimation = true;
+                        this._currentAnim.play(this._currentAnim.loopAnimation);
+                    }
+                   
                 })
                 this.controlIPressed=1;
             }
@@ -393,21 +395,20 @@ export class FirstPersonController {
     }
 
     private async CreatePlayer(): Promise<any> {
-        const result = await SceneLoader.ImportMeshAsync("", "./models/", "scar.glb", this._scene);
+        const result = await SceneLoader.ImportMeshAsync("", "./models/", "ak.glb", this._scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
         env.parent = this._camera;
-        /*env.position = new Vector3(0, -0.1, 0);
-        env.scaling = new Vector3(0.3, 0.3, -0.3);*/
-        /*for(let i = 1; i < 4; i++)
+        env.position = new Vector3(0, -0.1, 0);
+        env.scaling = new Vector3(0.3, 0.3, -0.3);
+        for(let i = 1; i < 4; i++)
         {
             result.meshes[i].renderingGroupId = 2;
-        }*/
-        
+        }/*
         result.meshes[0].position = new Vector3(0, -6.70, 1);
         result.meshes[0].rotation = new Vector3(0, 0, 0);
-        result.meshes[0].scaling = new Vector3(4, 4, -3);
+        result.meshes[0].scaling = new Vector3(4, 4, -3);*/
 
         //audio effect 
         this._ak47Sound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
@@ -415,22 +416,22 @@ export class FirstPersonController {
         
         //animations
         this._end = this._scene.getAnimationGroupByName("metarig|end");
-        this._fire = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Singl_Shot");
-        this._idle = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Idle");
-        this._reload = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Recharge");
-        //this._reloadEmpty = this._scene.getAnimationGroupByName("metarig|Reload_empty");
-        //this._reloadEmpty2 = this._scene.getAnimationGroupByName("metarig|Reload_empty2");
-        this._run = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Run");
-        //this._run2 = this._scene.getAnimationGroupByName("metarig|run2");
-        //this._run2_end = this._scene.getAnimationGroupByName("metarig|run2_end");
+        this._fire = this._scene.getAnimationGroupByName("metarig|Fire");
+        this._idle = this._scene.getAnimationGroupByName("metarig|idle");
+        this._reload = this._scene.getAnimationGroupByName("metarig|Reload");
+        this._reloadEmpty = this._scene.getAnimationGroupByName("metarig|Reload_empty");
+        this._reloadEmpty2 = this._scene.getAnimationGroupByName("metarig|Reload_empty2");
+        this._run = this._scene.getAnimationGroupByName("metarig|run");
+        this._run2 = this._scene.getAnimationGroupByName("metarig|run2");
+        this._run2_end = this._scene.getAnimationGroupByName("metarig|run2_end");
         this._run2_start = this._scene.getAnimationGroupByName("metarig|run2_start");
-        this._start = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Get");
-        this._walk = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Walk");
+        this._start = this._scene.getAnimationGroupByName("metarig|start");
+        this._walk = this._scene.getAnimationGroupByName("metarig|walk");
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
-        //this._run2.loopAnimation = true;
-        //this._run2_start.loopAnimation = false;
+        this._run2.loopAnimation = true;
+        this._run2_start.loopAnimation = false;
         this._setUpAnimations();
         this._animatePlayer();
 

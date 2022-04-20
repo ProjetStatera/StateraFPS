@@ -4,7 +4,8 @@ import "@babylonjs/loaders";
 
 import { SkyMaterial } from "@babylonjs/materials";
 import { AdvancedDynamicTexture, StackPanel, Button, TextBlock, Rectangle, Control, Image } from "@babylonjs/gui";
-import { FirstPersonController } from "./FirstPersonController";
+import { AkController } from "./akController";
+import { ScarController } from "./scarController";
 import { Enemy } from "./Enemy";
 import { Engine, int, KeyboardEventTypes, Tools, ArcRotateCamera, OimoJSPlugin, SpotLight, HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager, StandardMaterial, PBRMaterial, Material, float, Light } from "@babylonjs/core";
 import { Round } from "./Round";
@@ -16,7 +17,7 @@ class App {
     private _scene: Scene;
     private _canvas: HTMLCanvasElement;
     private _engine: Engine;
-    private _fps: FirstPersonController;
+    private _ak: AkController;
     private _difficulty: int;
     private _velocity: float;
     private _transition: boolean = false;
@@ -284,7 +285,7 @@ class App {
         this.createEnemies();
 
         //this._zombie = (new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity)); //only one zombie for testing
-        this._fps = new FirstPersonController(this._gameScene, this._canvas,this._zombie);
+        this._ak = new AkController(this._gameScene, this._canvas,this._zombie);
 
         this._gameScene.onPointerDown = (evt) => {
             if (evt.button === 0)//left click
