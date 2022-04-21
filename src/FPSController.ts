@@ -61,9 +61,9 @@ export class FPSController {
         this._scene = scene;
         this._canvas = canvas;
         this._zombie = zombie;
-        this.CreateScar();
-        this.CreateController();
-        this.KeyboardInput();
+        this.createScar();
+        this.createController();
+        this.keyboardInput();
         this.setupFlashlight();
         this.setupAllMeshes();
         this.update();
@@ -99,7 +99,7 @@ export class FPSController {
     /**
      * create the camera which represents the player (FPS)
      */
-    private CreateController(): void {
+    private createController(): void {
         this._camera = new FreeCamera("camera", new Vector3(0, 3, 0), this._scene);
         this._camera.attachControl(this._canvas, true);
 
@@ -111,14 +111,14 @@ export class FPSController {
         this._camera.ellipsoid = new Vector3(1, 1.1, 1);
 
         //Movements
-        this.ApplyMovementRules(this._camera);
+        this.applyMovementRules(this._camera);
     }
 
     /**
      * Movements rules
      * @param camera this camera
      */
-    ApplyMovementRules(camera: FreeCamera): void {
+    applyMovementRules(camera: FreeCamera): void {
         camera.keysUp.push(90);//z
         camera.keysDown.push(83);//s
         camera.keysLeft.push(81)//q
@@ -136,29 +136,29 @@ export class FPSController {
         switch (this.i)
         {
             case 0 : 
-                this.CreateAxe();
+                this.createAxe();
                 this.i++;
                 break;
             case 1 : 
-                this.CreateMac10();
+                this.createMac10();
                 this.i++;
                 break;
             case 2 : 
-                this.CreatePistol();
+                this.createPistol();
                 this.i++;
                 break;
             case 3 : 
-                this.CreateSniper();
+                this.createSniper();
                 this.i++;
                 break;
             case 4 : 
-                this.CreateScar();
+                this.createScar();
                 this.i = 0;
                 break;
         }
     }
 
-    private KeyboardInput(): void {
+    private keyboardInput(): void {
         this._scene.onKeyboardObservable.add((kbInfo) => {
             switch (kbInfo.type) {
                 case KeyboardEventTypes.KEYDOWN:
@@ -183,7 +183,8 @@ export class FPSController {
                             this.walk(this.runSpeed);
                             break;
                         case 'r':
-                            // reload
+                            this._currentAnim = this._reload;
+                            this._currentAnim.play(false);
                             break;
                         case 'f':
                             this._flashlightSound.play();
@@ -197,7 +198,10 @@ export class FPSController {
                         case 'p':
                             this.swap(this._weapon);
                             break;
-
+                        case 'g':
+                            this._currentAnim = this._look;
+                            this._currentAnim.play(true);
+                            
                     }
                     break;
             }
@@ -310,7 +314,9 @@ export class FPSController {
         }
     }
 
-    private async CreateScar(): Promise<any> {
+    private 
+
+    private async createScar(): Promise<any> {
         const result = await SceneLoader.ImportMeshAsync("", "./models/", "scar.glb", this._scene);
 
         let env = result.meshes[0];
@@ -320,9 +326,9 @@ export class FPSController {
         for (let i = 1; i < 4; i++) {
             result.meshes[i].renderingGroupId = 2;
         }
-        result.meshes[0].position = new Vector3(0, -6.70, 1);
+        result.meshes[0].position = new Vector3(0, -6.7, 0.76);
         result.meshes[0].rotation = new Vector3(0, 0, 0);
-        result.meshes[0].scaling = new Vector3(4, 4, -3);
+        result.meshes[0].scaling = new Vector3(4, 4, -4);
 
         //audio effect 
         this._weaponSound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
@@ -351,7 +357,7 @@ export class FPSController {
         }
     }
 
-    private async CreateAxe(): Promise<any> {
+    private async createAxe(): Promise<any> {
         const result = await SceneLoader.ImportMeshAsync("", "./models/", "axe.glb", this._scene);
 
         let env = result.meshes[0];
@@ -361,9 +367,9 @@ export class FPSController {
         for (let i = 1; i < 4; i++) {
             result.meshes[i].renderingGroupId = 2;
         }
-        result.meshes[0].position = new Vector3(0, -6.90, 1);
+        result.meshes[0].position = new Vector3(0, -7.2, 1);
         result.meshes[0].rotation = new Vector3(0, 0, 0);
-        result.meshes[0].scaling = new Vector3(4, 4, -3);
+        result.meshes[0].scaling = new Vector3(4, 4, -4);
 
         //audio effect 
         this._weaponSound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
@@ -389,19 +395,19 @@ export class FPSController {
         }
     }
 
-    private async CreateMac10(): Promise<any> {
+    private async createMac10(): Promise<any> {
         const result = await SceneLoader.ImportMeshAsync("", "./models/", "mac10.glb", this._scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
         env.parent = this._camera;
         this._weapon = env;
-        for (let i = 1; i < 4; i++) {
+        for (let i = 1; i < 7; i++) {
             result.meshes[i].renderingGroupId = 1;
         }
-        result.meshes[0].position = new Vector3(0, -6.70, 1);
+        result.meshes[0].position = new Vector3(0, -6.90, 1);
         result.meshes[0].rotation = new Vector3(0, 0, 0);
-        result.meshes[0].scaling = new Vector3(4, 4, -3);
+        result.meshes[0].scaling = new Vector3(4, 4, -4);
 
         //audio effect 
         this._weaponSound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
@@ -430,19 +436,19 @@ export class FPSController {
         }
     }
 
-    private async CreatePistol(): Promise<any> {
+    private async createPistol(): Promise<any> {
         const result = await SceneLoader.ImportMeshAsync("", "./models/", "pistol.glb", this._scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
         env.parent = this._camera;
         this._weapon = env;
-        for (let i = 1; i < 4; i++) {
+        for (let i = 1; i < 7; i++) {
             result.meshes[i].renderingGroupId = 1;
         }
-        result.meshes[0].position = new Vector3(0, -6.70, 1);
+        result.meshes[0].position = new Vector3(0, -6.90, 1);
         result.meshes[0].rotation = new Vector3(0, 0, 0);
-        result.meshes[0].scaling = new Vector3(4, 4, -3);
+        result.meshes[0].scaling = new Vector3(4, 4, -4);
 
         //audio effect 
         this._weaponSound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
@@ -471,7 +477,7 @@ export class FPSController {
         }
     }
 
-    private async CreateSniper(): Promise<any> {
+    private async createSniper(): Promise<any> {
         const result = await SceneLoader.ImportMeshAsync("", "./models/", "sniper.glb", this._scene);
 
         let env = result.meshes[0];
@@ -481,9 +487,9 @@ export class FPSController {
         for (let i = 1; i < 9; i++) {
             result.meshes[i].renderingGroupId = 1;
         }
-        result.meshes[0].position = new Vector3(0, -6.70, 1);
+        result.meshes[0].position = new Vector3(0, -6.730, 0.6);
         result.meshes[0].rotation = new Vector3(0, 0, 0);
-        result.meshes[0].scaling = new Vector3(4, 4, -3);
+        result.meshes[0].scaling = new Vector3(4, 4, -4);
 
         //audio effect 
         this._weaponSound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
