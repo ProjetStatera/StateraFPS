@@ -50,6 +50,7 @@ export class FPSController {
     private dPressed: boolean = false;
     private controlPressed: boolean = false;
     private controlIPressed: int = 0;
+    private rightClickPressed = false;
 
     //speed
     walkSpeed = 3;
@@ -80,7 +81,13 @@ export class FPSController {
                         this.manageAnimation(this._idle);
                         break;
                     case this.walkSpeed:
-                        this.manageAnimation(this._walk);
+                        if(!this.rightClickPressed)
+                        {
+                            this.manageAnimation(this._walk);
+                        }
+                        else{
+                            this.manageAnimation(this._aim_walk);
+                        }
                         break;
                     case this.runSpeed:
                         this.manageAnimation(this._run);
@@ -232,8 +239,26 @@ export class FPSController {
         this._scene.onPointerObservable.add((pointerInfo) => {
             switch (pointerInfo.type) {
                 case PointerEventTypes.POINTERDOWN:
-                    this.fire();
+                    if(pointerInfo.event.button === 0)
+                    {
+                        this.fire();
+                        console.log("click gauche up");
+                    }
+                    else if(pointerInfo.event.button == 2)
+                    {
+                        this.rightClickPressed=true;
+                        this._currentAnim.stop()
+                        this._aim_idle.play(true);
+                        console.log("click droit down");
+                    }
                     break;
+                case PointerEventTypes.POINTERUP:
+                    if(pointerInfo.event.button === 2)
+                    {
+                        this._currentAnim.stop();
+                        this._idle.play(true);
+                        console.log("click droit up");
+                    }
             }
         })
     }
@@ -301,7 +326,18 @@ export class FPSController {
 
         //animation
         //set animation
-        this._fire.play(false);
+        if(!this.rightClickPressed)
+        {
+            this._fire.play(false);
+        }
+        else{
+            this._currentAnim.loopAnimation=false;
+            this._currentAnim.stop();
+            this._currentAnim=this._aim_shot;
+            this._animatePlayer();
+            this.rightClickPressed=false;
+        }
+
 
         for (let i = 0; i < this._zMeshes.length; i++) {
             if (hit.pickedMesh.name == this._zMeshes[i]) {
@@ -342,6 +378,7 @@ export class FPSController {
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
+        this._aim_walk.loopAnimation=true;
         this._setUpAnimations();
         this._animatePlayer();
 
@@ -421,6 +458,8 @@ export class FPSController {
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
+        this._aim_walk.loopAnimation=true;
+
         this._setUpAnimations();
         this._animatePlayer();
 
@@ -462,6 +501,7 @@ export class FPSController {
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
+        this._aim_walk.loopAnimation=true;
         this._setUpAnimations();
         this._animatePlayer();
 
@@ -502,6 +542,7 @@ export class FPSController {
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
+        this._aim_walk.loopAnimation=true;
         this._setUpAnimations();
         this._animatePlayer();
 
