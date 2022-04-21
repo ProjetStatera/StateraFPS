@@ -8,14 +8,13 @@ export class FPSController {
     private _zombie: Enemy;
     private _zMeshes: Array<String>;
 
-    //weapon
-    private _ak: AbstractMesh;
-    private _scar: AbstractMesh;
+    //weapons
+    private _weapon: AbstractMesh;
+
 
     //sounds
-    private _ak47Sound: Sound;
+    private _weaponSound: Sound;
     private _flashlightSound: Sound;
-
     private _ambianceSound: Sound;
 
     //headLight
@@ -41,17 +40,16 @@ export class FPSController {
     private _aim_walk: AnimationGroup;
     private _aim_shot: AnimationGroup;
     private _aim_idle: AnimationGroup;
+    private _fire2: AnimationGroup;
+    private _look: AnimationGroup;
 
     //Keys
     private zPressed: boolean = false;
     private qPressed: boolean = false;
     private sPressed: boolean = false;
     private dPressed: boolean = false;
-    private controlPressed: boolean = false; 
-    private controlIPressed: int = 0; 
-    private rightClickPressed: boolean = false;
-
-
+    private controlPressed: boolean = false;
+    private controlIPressed: int = 0;
 
     //speed
     walkSpeed = 3;
@@ -63,12 +61,13 @@ export class FPSController {
         this._scene = scene;
         this._canvas = canvas;
         this._zombie = zombie;
-        this.CreatePlayer();
+        this.CreateScar();
         this.CreateController();
         this.KeyboardInput();
         this.setupFlashlight();
         this.setupAllMeshes();
         this.update();
+        this.i = 0;
     }
     /**
      * launched every 60ms 
@@ -86,9 +85,6 @@ export class FPSController {
                     case this.runSpeed:
                         this.manageAnimation(this._run);
                         break;
-                    case this.sprintSpeed:
-                        this.manageAnimationSprint();
-                        break;
                     default:
                         clearInterval();
                 }
@@ -98,99 +94,6 @@ export class FPSController {
     private manageAnimation(animation) {
         this._currentAnim = animation;
         this._animatePlayer();
-        if(this.controlPressed)
-        {
-            this.controlIPressed=0;
-        }
-        if(this._currentAnim===this._run2)
-        {
-            this._currentAnim.loopAnimation=false;
-            this._currentAnim=this._walk;
-            this._animatePlayer();
-        }
-    }
-
-    private manageAnimationSprint() {
-        if (this.zPressed){
-            if (this.controlPressed && this.controlIPressed===0 && !this.qPressed && !this.dPressed) {
-                this._currentAnim = this._run2_start;
-                this._currentAnim.play(this._currentAnim.loopAnimation);
-                this._currentAnim.onAnimationEndObservable.add(() => {
-                    if(this.controlPressed)
-                    {
-                        this._prevAnim = this._run2;
-                        this._currentAnim = this._run2;
-                        this._currentAnim.loopAnimation = true;
-                        this._currentAnim.play(this._currentAnim.loopAnimation);
-                    }
-                   
-                })
-                this.controlIPressed=1;
-            }
-            if (!this.controlPressed && this.controlIPressed===1) {
-                if (this._currentAnim === this._run2 || this._currentAnim===this._run2_start) {
-                    this._currentAnim.loopAnimation = false;
-                    this._currentAnim.onAnimationEndObservable.add(()=>{
-                        this._currentAnim = this._run2_end;
-                        this._prevAnim = this._run2_end;
-                        this._currentAnim.play(this._currentAnim.loopAnimation);
-                        this.walk(3.001);
-                        this._currentAnim.onAnimationEndObservable.add(()=>{
-                            if(this.zPressed)
-                            {
-                                this.walk(3);
-                            }
-                            else if(!this.zPressed)
-                            {
-                                this.walk(0);
-                            }
-                        })
-                    })
-                }
-                this.controlIPressed=0;
-            }
-        }
-        else if(!this.zPressed)
-        {
-            if(this.controlPressed && this.controlIPressed===0)
-            {
-                this._prevAnim = this._run2_start;
-                if(this.zPressed)
-                {
-                    this._currentAnim = this._run2_start;
-                    this._currentAnim.play(this._currentAnim.loopAnimation);
-                    this._currentAnim.onAnimationEndObservable.add(() => {
-                        this._prevAnim = this._run2;
-                        this._currentAnim = this._run2;
-                        this._currentAnim.loopAnimation = true;
-                        this._currentAnim.play(this._currentAnim.loopAnimation);
-                    })
-                }
-            }
-            if(!this.controlPressed)
-            {
-                if (this._currentAnim === this._run2 || this._currentAnim===this._run2_start) {
-                    this._currentAnim.loopAnimation = false;
-                    this._currentAnim.onAnimationEndObservable.add(()=>{
-                        this._currentAnim = this._run2_end;
-                        this._prevAnim = this._run2_end;
-                        this._currentAnim.play(this._currentAnim.loopAnimation);
-                        this.walk(3.001);
-                        this._currentAnim.onAnimationEndObservable.add(()=>{
-                            if(this.zPressed)
-                            {
-                                this.walk(3);
-                            }
-                            else if(!this.zPressed)
-                            {
-                                this.walk(0);
-                            }
-                        })
-                    })
-                }
-                this.controlIPressed=0;
-            }
-        }
     }
 
     /**
@@ -225,10 +128,34 @@ export class FPSController {
         camera.inertia = 0.1;
     }
 
-    private swap(lastWeapon){
-        lastWeapon.dispose();
-        this.CreateScar();
+    private i : int;
 
+    private swap(lastWeapon) {
+        lastWeapon.dispose();
+        console.log(this.i);
+        switch (this.i)
+        {
+            case 0 : 
+                this.CreateAxe();
+                this.i++;
+                break;
+            case 1 : 
+                this.CreateMac10();
+                this.i++;
+                break;
+            case 2 : 
+                this.CreatePistol();
+                this.i++;
+                break;
+            case 3 : 
+                this.CreateSniper();
+                this.i++;
+                break;
+            case 4 : 
+                this.CreateScar();
+                this.i = 0;
+                break;
+        }
     }
 
     private KeyboardInput(): void {
@@ -239,10 +166,6 @@ export class FPSController {
                         case 'z':
                             this.zPressed = true;
                             this.walk(this.walkSpeed);
-                            if(this.controlPressed)
-                            {
-                                this.walk(this.sprintSpeed);
-                            }
                             break;
                         case 's':
                             this.sPressed = true;
@@ -257,14 +180,7 @@ export class FPSController {
                             this.walk(this.walkSpeed);
                             break;
                         case 'Shift':
-                                this.walk(this.runSpeed);                            
-                            break;
-                        case 'Control':
-                            if(!this.qPressed && !this.dPressed)
-                            {
-                                this.walk(this.sprintSpeed);
-                                this.controlPressed = true;
-                            }
+                            this.walk(this.runSpeed);
                             break;
                         case 'r':
                             // reload
@@ -277,8 +193,9 @@ export class FPSController {
                             else {
                                 this._light.intensity = 5000;
                             }
+                            break;
                         case 'p':
-                            this.swap(this._ak);
+                            this.swap(this._weapon);
                             break;
 
                     }
@@ -305,10 +222,6 @@ export class FPSController {
                             this.dPressed = false;
                             this.allUnpressed();
                             break;
-                        case 'Control':
-                            this.controlPressed = false;
-                            this.allUnpressed();
-                            break;
                         case 'Shift':
                             this.allUnpressed();
                             break;
@@ -319,28 +232,16 @@ export class FPSController {
         this._scene.onPointerObservable.add((pointerInfo) => {
             switch (pointerInfo.type) {
                 case PointerEventTypes.POINTERDOWN:
-                    if(pointerInfo.event.button === 0)
-                    {
-                        this.fire();
-                    }
-                    else if(pointerInfo.event.button == 2)
-                    {
-                        this.rightClickPressed=true;
-                        this.fire();
-                    }
+                    this.fire();
                     break;
             }
         })
     }
 
     private allUnpressed() {
-        if(this.controlPressed && this.zPressed)
-        {
-            this.walk(this.sprintSpeed);
-        }
         if (!this.zPressed && !this.qPressed && !this.sPressed && !this.dPressed) {
             this.walk(0);
-        }        
+        }
     }
     /**
      * create the flashlight
@@ -385,7 +286,7 @@ export class FPSController {
         var zombie = this._zombie;
         var origin = this._camera.position;
 
-        this._ak47Sound.play(); //sound
+        this._weaponSound.play(); //sound
         var forward = new Vector3(0, 0, 1);
         forward = this.vecToLocal(forward, this._camera);
 
@@ -400,64 +301,12 @@ export class FPSController {
 
         //animation
         //set animation
-        if(!this.rightClickPressed)
-        {
-            this._fire.play(false);
-        }
-        else{
-            this._aim_shot.play(false);
-            this.rightClickPressed=false;
-        }
+        this._fire.play(false);
 
         for (let i = 0; i < this._zMeshes.length; i++) {
             if (hit.pickedMesh.name == this._zMeshes[i]) {
                 this._zombie.die();
             }
-        }
-    }
-
-    private async CreatePlayer(): Promise<any> {
-        const result = await SceneLoader.ImportMeshAsync("", "./models/", "ak.glb", this._scene);
-
-        let env = result.meshes[0];
-        let allMeshes = env.getChildMeshes();
-        env.parent = this._camera;
-        this._ak = env;
-        env.position = new Vector3(0, -0.1, 0);
-        env.scaling = new Vector3(0.3, 0.3, -0.3);
-        for(let i = 1; i < 4; i++)
-        {
-            result.meshes[i].renderingGroupId = 2;
-        }
-
-        //audio effect 
-        this._ak47Sound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
-        this._flashlightSound = new Sound("flashlightSound", "sounds/flashlight.mp3", this._scene);
-        
-        //animations
-        this._end = this._scene.getAnimationGroupByName("metarig|end");
-        this._fire = this._scene.getAnimationGroupByName("metarig|Fire");
-        this._idle = this._scene.getAnimationGroupByName("metarig|idle");
-        this._reload = this._scene.getAnimationGroupByName("metarig|Reload");
-        this._reloadEmpty = this._scene.getAnimationGroupByName("metarig|Reload_empty");
-        this._reloadEmpty2 = this._scene.getAnimationGroupByName("metarig|Reload_empty2");
-        this._run = this._scene.getAnimationGroupByName("metarig|run");
-        this._run2 = this._scene.getAnimationGroupByName("metarig|run2");
-        this._run2_end = this._scene.getAnimationGroupByName("metarig|run2_end");
-        this._run2_start = this._scene.getAnimationGroupByName("metarig|run2_start");
-        this._start = this._scene.getAnimationGroupByName("metarig|start");
-        this._walk = this._scene.getAnimationGroupByName("metarig|walk");
-        this._run.loopAnimation = true;
-        this._idle.loopAnimation = true;
-        this._walk.loopAnimation = true;
-        this._run2.loopAnimation = true;
-        this._run2_start.loopAnimation = false;
-        this._setUpAnimations();
-        this._animatePlayer();
-
-        return {
-            mesh: env as Mesh,
-            animationGroups: result.animationGroups
         }
     }
 
@@ -467,9 +316,8 @@ export class FPSController {
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
         env.parent = this._camera;
-        this._scar = env;
-        for(let i = 1; i < 4; i++)
-        {
+        this._weapon = env;
+        for (let i = 1; i < 4; i++) {
             result.meshes[i].renderingGroupId = 2;
         }
         result.meshes[0].position = new Vector3(0, -6.70, 1);
@@ -477,8 +325,9 @@ export class FPSController {
         result.meshes[0].scaling = new Vector3(4, 4, -3);
 
         //audio effect 
-        this._ak47Sound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
-        
+        this._weaponSound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
+        this._flashlightSound = new Sound("flashlightSound", "sounds/flashlight.mp3", this._scene);
+
         //animations
         this._end = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Hide");
         this._fire = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Singl_Shot");
@@ -496,10 +345,165 @@ export class FPSController {
         this._setUpAnimations();
         this._animatePlayer();
 
-        /*allMeshes.map(allMeshes => {
-            allMeshes.checkCollisions = true;
-            allMeshes.ellipsoid = new Vector3(1, 1, 1);
-        })*/
+        return {
+            mesh: env as Mesh,
+            animationGroups: result.animationGroups
+        }
+    }
+
+    private async CreateAxe(): Promise<any> {
+        const result = await SceneLoader.ImportMeshAsync("", "./models/", "axe.glb", this._scene);
+
+        let env = result.meshes[0];
+        let allMeshes = env.getChildMeshes();
+        env.parent = this._camera;
+        this._weapon = env;
+        for (let i = 1; i < 4; i++) {
+            result.meshes[i].renderingGroupId = 2;
+        }
+        result.meshes[0].position = new Vector3(0, -6.90, 1);
+        result.meshes[0].rotation = new Vector3(0, 0, 0);
+        result.meshes[0].scaling = new Vector3(4, 4, -3);
+
+        //audio effect 
+        this._weaponSound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
+
+        //animations
+        this._end = this._scene.getAnimationGroupByName("Hands_Axe.Hide");
+        this._fire = this._scene.getAnimationGroupByName("Hands_Axe.Attack");
+        this._fire2 = this._scene.getAnimationGroupByName("Hands_Axe.Attack2");
+        this._idle = this._scene.getAnimationGroupByName("Hands_Axe.Idle");
+        this._run = this._scene.getAnimationGroupByName("Hands_Axe.Run");
+        this._start = this._scene.getAnimationGroupByName("Hands_Axe.Get");
+        this._walk = this._scene.getAnimationGroupByName("Hands_Axe.Walk");
+        this._look = this._scene.getAnimationGroupByName("Hands_Axe.Idle_Other");
+        this._run.loopAnimation = true;
+        this._idle.loopAnimation = true;
+        this._walk.loopAnimation = true;
+        this._setUpAnimations();
+        this._animatePlayer();
+
+        return {
+            mesh: env as Mesh,
+            animationGroups: result.animationGroups
+        }
+    }
+
+    private async CreateMac10(): Promise<any> {
+        const result = await SceneLoader.ImportMeshAsync("", "./models/", "mac10.glb", this._scene);
+
+        let env = result.meshes[0];
+        let allMeshes = env.getChildMeshes();
+        env.parent = this._camera;
+        this._weapon = env;
+        for (let i = 1; i < 4; i++) {
+            result.meshes[i].renderingGroupId = 1;
+        }
+        result.meshes[0].position = new Vector3(0, -6.70, 1);
+        result.meshes[0].rotation = new Vector3(0, 0, 0);
+        result.meshes[0].scaling = new Vector3(4, 4, -3);
+
+        //audio effect 
+        this._weaponSound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
+
+        //animations
+        this._end = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Hide");
+        this._fire = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Singl_Shot");
+        this._idle = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Idle");
+        this._reload = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Reloading");
+        this._run = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Run");
+        this._start = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Get");
+        this._walk = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Walk");
+        this._aim_walk = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Aiming_Walk");
+        this._aim_shot = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Aiming_Shot");
+        this._aim_idle = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Aiming_Idle");
+        this._look = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Idle_Other");
+        this._run.loopAnimation = true;
+        this._idle.loopAnimation = true;
+        this._walk.loopAnimation = true;
+        this._setUpAnimations();
+        this._animatePlayer();
+
+        return {
+            mesh: env as Mesh,
+            animationGroups: result.animationGroups
+        }
+    }
+
+    private async CreatePistol(): Promise<any> {
+        const result = await SceneLoader.ImportMeshAsync("", "./models/", "pistol.glb", this._scene);
+
+        let env = result.meshes[0];
+        let allMeshes = env.getChildMeshes();
+        env.parent = this._camera;
+        this._weapon = env;
+        for (let i = 1; i < 4; i++) {
+            result.meshes[i].renderingGroupId = 1;
+        }
+        result.meshes[0].position = new Vector3(0, -6.70, 1);
+        result.meshes[0].rotation = new Vector3(0, 0, 0);
+        result.meshes[0].scaling = new Vector3(4, 4, -3);
+
+        //audio effect 
+        this._weaponSound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
+
+        //animations
+        this._end = this._scene.getAnimationGroupByName("Hands_Gun.Hide");
+        this._fire = this._scene.getAnimationGroupByName("Hands_Gun.Shot");
+        this._idle = this._scene.getAnimationGroupByName("Hands_Gun.Idle");
+        this._reload = this._scene.getAnimationGroupByName("Hands_Gun.Recharge");
+        this._run = this._scene.getAnimationGroupByName("Hands_Gun.Run");
+        this._start = this._scene.getAnimationGroupByName("Hands_Gun.Get");
+        this._walk = this._scene.getAnimationGroupByName("Hands_Gun.Walk");
+        this._aim_walk = this._scene.getAnimationGroupByName("Hands_Gun.Aiming_Walk");
+        this._aim_shot = this._scene.getAnimationGroupByName("Hands_Gun.Aiming_Shot");
+        this._aim_idle = this._scene.getAnimationGroupByName("Hands_Gun.Aiming_Idle");
+        this._look = this._scene.getAnimationGroupByName("Hands_Gun.Idle_other");
+        this._run.loopAnimation = true;
+        this._idle.loopAnimation = true;
+        this._walk.loopAnimation = true;
+        this._setUpAnimations();
+        this._animatePlayer();
+
+        return {
+            mesh: env as Mesh,
+            animationGroups: result.animationGroups
+        }
+    }
+
+    private async CreateSniper(): Promise<any> {
+        const result = await SceneLoader.ImportMeshAsync("", "./models/", "sniper.glb", this._scene);
+
+        let env = result.meshes[0];
+        let allMeshes = env.getChildMeshes();
+        env.parent = this._camera;
+        this._weapon = env;
+        for (let i = 1; i < 9; i++) {
+            result.meshes[i].renderingGroupId = 1;
+        }
+        result.meshes[0].position = new Vector3(0, -6.70, 1);
+        result.meshes[0].rotation = new Vector3(0, 0, 0);
+        result.meshes[0].scaling = new Vector3(4, 4, -3);
+
+        //audio effect 
+        this._weaponSound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
+
+        //animations
+        this._end = this._scene.getAnimationGroupByName("Hands_Sniper_Rifle.Hide");
+        this._fire = this._scene.getAnimationGroupByName("Hands_Sniper_Rifle.Shot");
+        this._idle = this._scene.getAnimationGroupByName("Hands_Sniper_Rifle.Idel");
+        this._reload = this._scene.getAnimationGroupByName("Hands_Sniper_Rifle.Recharge");
+        this._run = this._scene.getAnimationGroupByName("Hands_Sniper_Rifle.Run");
+        this._start = this._scene.getAnimationGroupByName("Hands_Sniper_Rifle.Get");
+        this._walk = this._scene.getAnimationGroupByName("Hands_Sniper_Rifle.Walk");
+        this._aim_walk = this._scene.getAnimationGroupByName("Hands_Sniper_Rifle.Aiming_Walk");
+        this._aim_shot = this._scene.getAnimationGroupByName("Hands_Sniper_Rifle.Aiming_Shot");
+        this._aim_idle = this._scene.getAnimationGroupByName("Hands_Sniper_Rifle.Aiming_Idle");
+        this._run.loopAnimation = true;
+        this._idle.loopAnimation = true;
+        this._walk.loopAnimation = true;
+        this._setUpAnimations();
+        this._animatePlayer();
 
         return {
             mesh: env as Mesh,
