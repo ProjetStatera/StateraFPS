@@ -11,6 +11,10 @@ export class FPSController {
     //weapons
     private _weapon: AbstractMesh;
 
+    //cooldown to shot
+    private _cooldown_fire: int;
+    private _cooldown_time: int;
+
 
     //sounds
     private _weaponSound: Sound;
@@ -69,6 +73,8 @@ export class FPSController {
         this.setupAllMeshes();
         this.update();
         this.i = 0;
+        this._cooldown_time = 0;
+
     }
     /**
      * launched every 60ms 
@@ -76,6 +82,14 @@ export class FPSController {
     private update() {
         this._scene.onReadyObservable.addOnce(() => {
             setInterval(() => {
+                if(this._cooldown_time<999999999)
+                {
+                    this._cooldown_time+=1
+                }
+                else{
+                    this._cooldown_time=0;
+                }
+                console.log(this._cooldown_time);
                 switch (this._camera.speed) {
                     case 0:
                         this.manageAnimation(this._idle);
@@ -241,7 +255,11 @@ export class FPSController {
                 case PointerEventTypes.POINTERDOWN:
                     if(pointerInfo.event.button === 0)
                     {
-                        this.fire();
+                        if(this._cooldown_fire<=this._cooldown_time/60)
+                        {
+                            this.fire();
+                            this._cooldown_time=0;
+                        }
                         console.log("click gauche up");
                     }
                     else if(pointerInfo.event.button == 2)
@@ -381,6 +399,7 @@ export class FPSController {
         this._aim_walk.loopAnimation=true;
         this._setUpAnimations();
         this._animatePlayer();
+        this._cooldown_fire = 0.15;
 
         return {
             mesh: env as Mesh,
@@ -408,7 +427,7 @@ export class FPSController {
         //animations
         this._end = this._scene.getAnimationGroupByName("Hands_Axe.Hide");
         this._fire = this._scene.getAnimationGroupByName("Hands_Axe.Attack");
-        this._fire2 = this._scene.getAnimationGroupByName("Hands_Axe.Attack2");
+        this._aim_shot = this._scene.getAnimationGroupByName("Hands_Axe.Attack2");
         this._idle = this._scene.getAnimationGroupByName("Hands_Axe.Idle");
         this._run = this._scene.getAnimationGroupByName("Hands_Axe.Run");
         this._start = this._scene.getAnimationGroupByName("Hands_Axe.Get");
@@ -417,6 +436,7 @@ export class FPSController {
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
+        this._cooldown_fire = 1.70;
         this._setUpAnimations();
         this._animatePlayer();
 
@@ -459,7 +479,7 @@ export class FPSController {
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
         this._aim_walk.loopAnimation=true;
-
+        this._cooldown_fire = 0.13;
         this._setUpAnimations();
         this._animatePlayer();
 
@@ -502,6 +522,7 @@ export class FPSController {
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
         this._aim_walk.loopAnimation=true;
+        this._cooldown_fire = 0.30;
         this._setUpAnimations();
         this._animatePlayer();
 
@@ -543,6 +564,7 @@ export class FPSController {
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
         this._aim_walk.loopAnimation=true;
+        this._cooldown_fire = 2;
         this._setUpAnimations();
         this._animatePlayer();
 
