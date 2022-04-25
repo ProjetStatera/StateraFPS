@@ -276,14 +276,19 @@ export class FPSController {
                     }
                     else if(pointerInfo.event.button == 2)
                     {
-                        this.rightClickPressed=true;
+                        if(!this.rightClickPressed)
+                        {
+                            this.rightClickPressed=true;
+                        }
+                        else{
+                            this.rightClickPressed=false;
+                        }
                         console.log("click droit down");
                     }
                     break;
                 case PointerEventTypes.POINTERUP:
                     if(pointerInfo.event.button === 2)
                     {
-                        this.rightClickPressed=false;
                         console.log("click droit up");
                     }
             }
