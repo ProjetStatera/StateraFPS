@@ -44,7 +44,6 @@ export class FPSController {
     private _aim_walk: AnimationGroup;
     private _aim_shot: AnimationGroup;
     private _aim_idle: AnimationGroup;
-    private _fire2: AnimationGroup;
     private _look: AnimationGroup;
 
     //Keys
@@ -82,7 +81,7 @@ export class FPSController {
     private update() {
         this._scene.onReadyObservable.addOnce(() => {
             setInterval(() => {
-                if(this._cooldown_time<999999999)
+                if(this._cooldown_time<99999999)
                 {
                     this._cooldown_time+=1
                 }
@@ -92,7 +91,13 @@ export class FPSController {
                 console.log(this._cooldown_time);
                 switch (this._camera.speed) {
                     case 0:
-                        this.manageAnimation(this._idle);
+                        if(!this.rightClickPressed)
+                        {
+                            this.manageAnimation(this._idle);
+                        }
+                        else{
+                            this.manageAnimation(this._aim_idle);
+                        }
                         break;
                     case this.walkSpeed:
                         if(!this.rightClickPressed)
@@ -260,21 +265,18 @@ export class FPSController {
                             this.fire();
                             this._cooldown_time=0;
                         }
-                        console.log("click gauche up");
+                        console.log("click gauche down");
                     }
                     else if(pointerInfo.event.button == 2)
                     {
                         this.rightClickPressed=true;
-                        this._currentAnim.stop()
-                        this._aim_idle.play(true);
                         console.log("click droit down");
                     }
                     break;
                 case PointerEventTypes.POINTERUP:
                     if(pointerInfo.event.button === 2)
                     {
-                        this._currentAnim.stop();
-                        this._idle.play(true);
+                        this.rightClickPressed=false;
                         console.log("click droit up");
                     }
             }
@@ -349,11 +351,8 @@ export class FPSController {
             this._fire.play(false);
         }
         else{
-            this._currentAnim.loopAnimation=false;
-            this._currentAnim.stop();
-            this._currentAnim=this._aim_shot;
+            this._aim_shot.play(false);
             this._animatePlayer();
-            this.rightClickPressed=false;
         }
 
 
@@ -578,6 +577,7 @@ export class FPSController {
         this._scene.stopAllAnimations();
         //initialize current and previous
         this._currentAnim = this._start;
+        this._currentAnim.loopAnimation=false;
         this._prevAnim = this._end;
     }
 
