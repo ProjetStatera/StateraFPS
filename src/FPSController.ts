@@ -166,7 +166,7 @@ export class FPSController {
                 this.i++;
                 break;
             case 1 : 
-                this.createMac10();
+                this.createShotgun();
                 this.i++;
                 break;
             case 2 : 
@@ -451,17 +451,17 @@ export class FPSController {
         }
     }
 
-    private async createMac10(): Promise<any> {
-        const result = await SceneLoader.ImportMeshAsync("", "./models/", "mac10.glb", this._scene);
+    private async createShotgun(): Promise<any> {
+        const result = await SceneLoader.ImportMeshAsync("", "./models/", "shotgun.glb", this._scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
         env.parent = this._camera;
         this._weapon = env;
-        for (let i = 1; i < 7; i++) {
+        for (let i = 1; i < 9; i++) {
             result.meshes[i].renderingGroupId = 1;
         }
-        result.meshes[0].position = new Vector3(0, -6.90, 1);
+        result.meshes[0].position = new Vector3(0, -6.90, 0.5);
         result.meshes[0].rotation = new Vector3(0, 0, 0);
         result.meshes[0].scaling = new Vector3(4, 4, -4);
 
@@ -469,17 +469,17 @@ export class FPSController {
         this._weaponSound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
 
         //animations
-        this._end = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Hide");
-        this._fire = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Singl_Shot");
-        this._idle = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Idle");
-        this._reload = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Reloading");
-        this._run = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Run");
-        this._start = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Get");
-        this._walk = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Walk");
-        this._aim_walk = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Aiming_Walk");
-        this._aim_shot = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Aiming_Shot");
-        this._aim_idle = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Aiming_Idle");
-        this._look = this._scene.getAnimationGroupByName("Hands_Tommy_gun.Idle_Other");
+        this._end = this._scene.getAnimationGroupByName("Hands_Shotgun.Hide");
+        this._fire = this._scene.getAnimationGroupByName("Hands_Shotgun.Shot");
+        this._idle = this._scene.getAnimationGroupByName("Hands_Shotgun.Idle");
+        this._reload = this._scene.getAnimationGroupByName("Hands_Shotgun.Recharge");
+        this._run = this._scene.getAnimationGroupByName("Hands_Shotgun.Run");
+        this._start = this._scene.getAnimationGroupByName("Hands_Shotgun.Get");
+        this._walk = this._scene.getAnimationGroupByName("Hands_Shotgun.Walk");
+        this._aim_walk = this._scene.getAnimationGroupByName("Hands_Shotgun.Aming_Walk");
+        this._aim_shot = this._scene.getAnimationGroupByName("Hands_Shotgun.Aming_Shot");
+        this._aim_idle = this._scene.getAnimationGroupByName("Hands_Shotgun.Aming_Idle");
+        this._look = this._scene.getAnimationGroupByName("Hands_Shotgun.Idle_Other");
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
@@ -501,7 +501,7 @@ export class FPSController {
         let allMeshes = env.getChildMeshes();
         env.parent = this._camera;
         this._weapon = env;
-        for (let i = 1; i < 7; i++) {
+        for (let i = 1; i < 9; i++) {
             result.meshes[i].renderingGroupId = 1;
         }
         result.meshes[0].position = new Vector3(0, -6.90, 1);
@@ -512,17 +512,17 @@ export class FPSController {
         this._weaponSound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
 
         //animations
-        this._end = this._scene.getAnimationGroupByName("Hands_Gun.Hide");
-        this._fire = this._scene.getAnimationGroupByName("Hands_Gun.Shot");
-        this._idle = this._scene.getAnimationGroupByName("Hands_Gun.Idle");
-        this._reload = this._scene.getAnimationGroupByName("Hands_Gun.Recharge");
-        this._run = this._scene.getAnimationGroupByName("Hands_Gun.Run");
-        this._start = this._scene.getAnimationGroupByName("Hands_Gun.Get");
-        this._walk = this._scene.getAnimationGroupByName("Hands_Gun.Walk");
-        this._aim_walk = this._scene.getAnimationGroupByName("Hands_Gun.Aiming_Walk");
-        this._aim_shot = this._scene.getAnimationGroupByName("Hands_Gun.Aiming_Shot");
-        this._aim_idle = this._scene.getAnimationGroupByName("Hands_Gun.Aiming_Idle");
-        this._look = this._scene.getAnimationGroupByName("Hands_Gun.Idle_other");
+        this._end = this._scene.getAnimationGroupByName("Hands_Gun02.Hide");
+        this._fire = this._scene.getAnimationGroupByName("Hands_Gun02.Shot");
+        this._idle = this._scene.getAnimationGroupByName("Hands_Gun02.Idle");
+        this._reload = this._scene.getAnimationGroupByName("Hands_Gun02.Reload");
+        this._run = this._scene.getAnimationGroupByName("Hands_Gun02.Run");
+        this._start = this._scene.getAnimationGroupByName("Hands_Gun02.Get");
+        this._walk = this._scene.getAnimationGroupByName("Hands_Gun02.Walk");
+        this._aim_walk = this._scene.getAnimationGroupByName("Hands_Gun02.Aim_Walk");
+        this._aim_shot = this._scene.getAnimationGroupByName("Hands_Gun02.Aim_Shot");
+        this._aim_idle = this._scene.getAnimationGroupByName("Hands_Gun02.Aim_Idle");
+        this._look = this._scene.getAnimationGroupByName("Hands_Gun02.Idle_other");
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
