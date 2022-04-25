@@ -206,7 +206,10 @@ export class FPSController {
                             this.walk(this.walkSpeed);
                             break;
                         case 'Shift':
-                            this.walk(this.runSpeed);
+                            if(this.zPressed || this.qPressed || this.sPressed || this.dPressed)
+                            {
+                                this.walk(this.runSpeed);
+                            }
                             break;
                         case 'r':
                             // reload
