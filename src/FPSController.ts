@@ -223,6 +223,13 @@ export class FPSController {
                         case 'p':
                             this.swap(this._weapon);
                             break;
+                        case '&':
+                            if(this._cooldown_fire<=this._cooldown_time/60)
+                            {
+                                this.fire();
+                                this._cooldown_time=0;
+                            }
+                            break;
 
                     }
                     break;
@@ -338,7 +345,7 @@ export class FPSController {
         var direction = forward.subtract(origin);
         direction = Vector3.Normalize(direction);
 
-        var length = 100;
+        var length = 1000;
 
         var ray = new Ray(origin, direction, length);
 
