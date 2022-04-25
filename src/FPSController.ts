@@ -11,6 +11,10 @@ export class FPSController {
     //weapons
     private _weapon: AbstractMesh;
 
+    //cooldown to shot
+    private _cooldown_fire: int;
+    private _cooldown_time: int;
+
 
     //sounds
     private _weaponSound: Sound;
@@ -40,7 +44,6 @@ export class FPSController {
     private _aim_walk: AnimationGroup;
     private _aim_shot: AnimationGroup;
     private _aim_idle: AnimationGroup;
-    private _fire2: AnimationGroup;
     private _look: AnimationGroup;
 
     //Keys
@@ -50,6 +53,7 @@ export class FPSController {
     private dPressed: boolean = false;
     private controlPressed: boolean = false;
     private controlIPressed: int = 0;
+    private rightClickPressed = false;
 
     //speed
     walkSpeed = 3;
@@ -68,6 +72,8 @@ export class FPSController {
         this.setupAllMeshes();
         this.update();
         this.i = 0;
+        this._cooldown_time = 0;
+
     }
     /**
      * launched every 60ms 
@@ -75,12 +81,32 @@ export class FPSController {
     private update() {
         this._scene.onReadyObservable.addOnce(() => {
             setInterval(() => {
+                if(this._cooldown_time<99999999)
+                {
+                    this._cooldown_time+=1
+                }
+                else{
+                    this._cooldown_time=0;
+                }
+                console.log(this._cooldown_time);
                 switch (this._camera.speed) {
                     case 0:
-                        this.manageAnimation(this._idle);
+                        if(!this.rightClickPressed)
+                        {
+                            this.manageAnimation(this._idle);
+                        }
+                        else{
+                            this.manageAnimation(this._aim_idle);
+                        }
                         break;
                     case this.walkSpeed:
-                        this.manageAnimation(this._walk);
+                        if(!this.rightClickPressed)
+                        {
+                            this.manageAnimation(this._walk);
+                        }
+                        else{
+                            this.manageAnimation(this._aim_walk);
+                        }
                         break;
                     case this.runSpeed:
                         this.manageAnimation(this._run);
@@ -236,8 +262,27 @@ export class FPSController {
         this._scene.onPointerObservable.add((pointerInfo) => {
             switch (pointerInfo.type) {
                 case PointerEventTypes.POINTERDOWN:
-                    this.fire();
+                    if(pointerInfo.event.button === 0)
+                    {
+                        if(this._cooldown_fire<=this._cooldown_time/60)
+                        {
+                            this.fire();
+                            this._cooldown_time=0;
+                        }
+                        console.log("click gauche down");
+                    }
+                    else if(pointerInfo.event.button == 2)
+                    {
+                        this.rightClickPressed=true;
+                        console.log("click droit down");
+                    }
                     break;
+                case PointerEventTypes.POINTERUP:
+                    if(pointerInfo.event.button === 2)
+                    {
+                        this.rightClickPressed=false;
+                        console.log("click droit up");
+                    }
             }
         })
     }
@@ -305,7 +350,15 @@ export class FPSController {
 
         //animation
         //set animation
-        this._fire.play(false);
+        if(!this.rightClickPressed)
+        {
+            this._fire.play(false);
+        }
+        else{
+            this._aim_shot.play(false);
+            this._animatePlayer();
+        }
+
 
         for (let i = 0; i < this._zMeshes.length; i++) {
             if (hit.pickedMesh.name == this._zMeshes[i]) {
@@ -348,8 +401,10 @@ export class FPSController {
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
+        this._aim_walk.loopAnimation=true;
         this._setUpAnimations();
         this._animatePlayer();
+        this._cooldown_fire = 0.15;
 
         return {
             mesh: env as Mesh,
@@ -377,7 +432,7 @@ export class FPSController {
         //animations
         this._end = this._scene.getAnimationGroupByName("Hands_Axe.Hide");
         this._fire = this._scene.getAnimationGroupByName("Hands_Axe.Attack");
-        this._fire2 = this._scene.getAnimationGroupByName("Hands_Axe.Attack2");
+        this._aim_shot = this._scene.getAnimationGroupByName("Hands_Axe.Attack2");
         this._idle = this._scene.getAnimationGroupByName("Hands_Axe.Idle");
         this._run = this._scene.getAnimationGroupByName("Hands_Axe.Run");
         this._start = this._scene.getAnimationGroupByName("Hands_Axe.Get");
@@ -386,6 +441,7 @@ export class FPSController {
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
+        this._cooldown_fire = 1.70;
         this._setUpAnimations();
         this._animatePlayer();
 
@@ -427,6 +483,8 @@ export class FPSController {
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
+        this._aim_walk.loopAnimation=true;
+        this._cooldown_fire = 0.13;
         this._setUpAnimations();
         this._animatePlayer();
 
@@ -468,6 +526,8 @@ export class FPSController {
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
+        this._aim_walk.loopAnimation=true;
+        this._cooldown_fire = 0.30;
         this._setUpAnimations();
         this._animatePlayer();
 
@@ -508,6 +568,8 @@ export class FPSController {
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
+        this._aim_walk.loopAnimation=true;
+        this._cooldown_fire = 2;
         this._setUpAnimations();
         this._animatePlayer();
 
@@ -521,6 +583,7 @@ export class FPSController {
         this._scene.stopAllAnimations();
         //initialize current and previous
         this._currentAnim = this._start;
+        this._currentAnim.loopAnimation=false;
         this._prevAnim = this._end;
     }
 
