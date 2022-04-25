@@ -160,24 +160,20 @@ export class FPSController {
         lastWeapon.dispose();
         console.log(this.i);
         switch (this.i)
-        {
+        {            
             case 0 : 
-                this.createAxe();
-                this.i++;
-                break;
-            case 1 : 
                 this.createShotgun();
                 this.i++;
                 break;
-            case 2 : 
+            case 1 : 
                 this.createPistol();
                 this.i++;
                 break;
-            case 3 : 
+            case 2 : 
                 this.createSniper();
                 this.i++;
                 break;
-            case 4 : 
+            case 3 : 
                 this.createScar();
                 this.i = 0;
                 break;
@@ -414,45 +410,6 @@ export class FPSController {
         this._setUpAnimations();
         this._animatePlayer();
         this._cooldown_fire = 0.15;
-
-        return {
-            mesh: env as Mesh,
-            animationGroups: result.animationGroups
-        }
-    }
-
-    private async createAxe(): Promise<any> {
-        const result = await SceneLoader.ImportMeshAsync("", "./models/", "axe.glb", this._scene);
-
-        let env = result.meshes[0];
-        let allMeshes = env.getChildMeshes();
-        env.parent = this._camera;
-        this._weapon = env;
-        for (let i = 1; i < 4; i++) {
-            result.meshes[i].renderingGroupId = 2;
-        }
-        result.meshes[0].position = new Vector3(0, -6.90, 1);
-        result.meshes[0].rotation = new Vector3(0, 0, 0);
-        result.meshes[0].scaling = new Vector3(4, 4, -3);
-
-        //audio effect 
-        this._weaponSound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
-
-        //animations
-        this._end = this._scene.getAnimationGroupByName("Hands_Axe.Hide");
-        this._fire = this._scene.getAnimationGroupByName("Hands_Axe.Attack");
-        this._aim_shot = this._scene.getAnimationGroupByName("Hands_Axe.Attack2");
-        this._idle = this._scene.getAnimationGroupByName("Hands_Axe.Idle");
-        this._run = this._scene.getAnimationGroupByName("Hands_Axe.Run");
-        this._start = this._scene.getAnimationGroupByName("Hands_Axe.Get");
-        this._walk = this._scene.getAnimationGroupByName("Hands_Axe.Walk");
-        this._look = this._scene.getAnimationGroupByName("Hands_Axe.Idle_Other");
-        this._run.loopAnimation = true;
-        this._idle.loopAnimation = true;
-        this._walk.loopAnimation = true;
-        this._cooldown_fire = 1.70;
-        this._setUpAnimations();
-        this._animatePlayer();
 
         return {
             mesh: env as Mesh,
