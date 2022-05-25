@@ -48,7 +48,7 @@ export class Enemy {
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
         env.position = position;
-        env.scaling = new Vector3(0.02, 0.02, 0.02);
+        env.scaling = new Vector3(1.5, 1.5, 1.5);
         env.name = this.name;
         this.zombieMeshes = env;
         this._attack = this.scene.getAnimationGroupByName("Zombie@Z_Attack");
