@@ -27,6 +27,7 @@ export class Enemy {
     private _run: AnimationGroup;
     private _walk: AnimationGroup;
     private _walk2: AnimationGroup;
+    
 
     constructor(scene: Scene, canvas: HTMLCanvasElement, difficulty, velocity: int, name: string) {
         this.scene = scene;
@@ -44,11 +45,10 @@ export class Enemy {
 
     private async CreateEnemy(position: Vector3): Promise<any> {
         const result = await SceneLoader.ImportMeshAsync("", "./models/", "zombie.glb", this.scene);
-
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
         env.position = position;
-        env.scaling = new Vector3(1.5, 1.5, 1.5);
+        env.scaling = new Vector3(1.5, 1.5, -1.5);
         env.name = this.name;
         this.zombieMeshes = env;
         this._attack = this.scene.getAnimationGroupByName("Zombie@Z_Attack");
