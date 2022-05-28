@@ -6,6 +6,8 @@ import { Player } from "./Player";
 export class Enemy {
 
     private velocity: float;
+    private _max_Health=100;
+    private _current_Health: int;
     private isDead: Boolean;
 
     public camera: FreeCamera;
@@ -36,6 +38,7 @@ export class Enemy {
         this.name = name;
         this.spawner(difficulty);
         this.update();
+        this._current_Health=this._max_Health;
     }
 
     private async spawner(difficulty: int): Promise<any> {
@@ -85,15 +88,15 @@ export class Enemy {
 }
 
 
-    public getHit() {
+    public getHit(damagesTaken: int) {
+        this._current_Health-=damagesTaken;
         this._currentAnim = this._fallingBack;
         this._animateZombie();
     }
 
     public die() {
-        if (!this.isDead) {
+        if (this._current_Health<=0) {
             this.isDead = true;
-            this.getHit();
             this.zombieMeshes.setEnabled(false);
         }
     }

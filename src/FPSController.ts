@@ -11,10 +11,10 @@ export class FPSController {
     //weapons
     private _weapon: AbstractMesh;
 
-    //cooldown to shot
+    //shots
     private _cooldown_fire: int;
     private _cooldown_time: int;
-
+    private _damages: int;
 
     //sounds
     private _weaponSound: Sound;
@@ -369,7 +369,7 @@ export class FPSController {
 
         for (let i = 0; i < this._zMeshes.length; i++) {
             if (hit.pickedMesh.name == this._zMeshes[i]) {
-                this._zombie.die();
+                this._zombie.getHit(this._damages);
             }
         }
     }
@@ -410,6 +410,7 @@ export class FPSController {
         this._setUpAnimations();
         this._animatePlayer();
         this._cooldown_fire = 0.15;
+        this._damages=30;
 
         return {
             mesh: env as Mesh,
@@ -453,6 +454,7 @@ export class FPSController {
         this._cooldown_fire = 0.13;
         this._setUpAnimations();
         this._animatePlayer();
+        this._damages=40;
 
         return {
             mesh: env as Mesh,
@@ -494,6 +496,7 @@ export class FPSController {
         this._walk.loopAnimation = true;
         this._aim_walk.loopAnimation=true;
         this._cooldown_fire = 0.30;
+        this._damages=15;
         this._setUpAnimations();
         this._animatePlayer();
 
@@ -536,6 +539,7 @@ export class FPSController {
         this._walk.loopAnimation = true;
         this._aim_walk.loopAnimation=true;
         this._cooldown_fire = 2;
+        this._damages=200;
         this._setUpAnimations();
         this._animatePlayer();
 
