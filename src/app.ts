@@ -6,6 +6,9 @@ import { SkyMaterial } from "@babylonjs/materials";
 import { AdvancedDynamicTexture, StackPanel, Button, TextBlock, Rectangle, Control, Image } from "@babylonjs/gui";
 import { FPSController } from "./FPSController";
 import { Enemy } from "./Enemy";
+import { Mutant } from "./Mutant";
+import { Boss } from "./Boss";
+import { Zombie } from "./Zombie";
 import { Engine, int, KeyboardEventTypes, Tools, ArcRotateCamera, OimoJSPlugin, SpotLight, HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager, StandardMaterial, PBRMaterial, Material, float, Light } from "@babylonjs/core";
 import { Round } from "./Round";
 
@@ -18,6 +21,8 @@ class App {
     private _engine: Engine;
     private _difficulty: int;
     private _velocity: float;
+    private _velocity2: float;
+    private _velocity3: float;
     private _transition: boolean = false;
     private _light1: Light;
     private _skyboxMaterial: SkyMaterial;
@@ -29,8 +34,11 @@ class App {
     private _fps: FPSController;
 
     //Zombies
-    private _zombies:Array<Enemy>;
-    private _zombie:Enemy;
+    private _enemies:Array<Enemy>;
+    private _enemy: Enemy;
+    private _zombie:Zombie;
+    private _boss:Boss;
+    private _mutant:Mutant;
     
     //Scene - related
     private _state: number = 0;
@@ -136,6 +144,8 @@ class App {
             hard.width = "5%";
             this._difficulty = 400;
             this._velocity = 0.4;
+            this._velocity2 = 0.7;
+            this._velocity3 = 1;
         });
 
         //medium
@@ -152,6 +162,8 @@ class App {
             hard.width = "5%";
             this._difficulty = 250;
             this._velocity = 0.7;
+            this._velocity2 = 1;
+            this._velocity3 = 1.3;
         });
 
         //hard
@@ -166,7 +178,9 @@ class App {
             medium.width = "5%";
             hard.width = "8%";
             this._difficulty = 100;
-            this._velocity = 1.2;
+            this._velocity = 1.1;
+            this._velocity2 = 1.3;
+            this._velocity3 = 1.5;
         });
 
         //this handles interactions with the start button attached to the scene
@@ -242,24 +256,18 @@ class App {
 
     private createEnemies()
     {
-        this._zombies = 
-            [new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie0"),
-            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie1"),
-            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie2"),
-            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie3"),
-            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie4"),
-            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie5"),
-            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie6"),
-            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie7"),
-            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie8"),
-            new Enemy(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie9"),
-        ]
+        this._enemies = 
+            [ this._zombie = new Zombie(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie"),
+            this._mutant = new Mutant(this._gameScene, this._canvas, this._difficulty, this._velocity2,"mutant"),
+            this._boss = new Boss(this._gameScene, this._canvas, this._difficulty, this._velocity3,"boss"),
+    ]
+            
     }
 
     private disableEnemies(){
-        for(var zombie of this._zombies)
+        for(var enemy of this._enemies)
         {
-            zombie.zombieMeshes.setEnabled(false);
+            enemy.zombieMeshes.setEnabled(false);
         }
     }
 
@@ -271,7 +279,7 @@ class App {
         this._gameScene = scene;
         this._scene.detachControl();
         this.createEnemies();
-        this._fps = new FPSController(this._gameScene, this._canvas,this._zombie);
+        this._fps = new FPSController(this._gameScene, this._canvas, this._zombie, this._mutant, this._boss, this._zombie);
 
         this._gameScene.onPointerDown = (evt) => {
             if (evt.button === 0)//left click
