@@ -2,13 +2,16 @@ import * as BabylonViewer from '@babylonjs/viewer';
 import { Engine, Tools, KeyboardEventTypes, Space, AnimationGroup, int, AbstractMesh, float, ArcRotateCamera, OimoJSPlugin, SpotLight, HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager, StandardMaterial, PBRMaterial, Material } from "@babylonjs/core";
 import { FPSController } from "./FPSController";
 import { Player } from "./Player";
+import { PlayerHealth } from './PlayerHealth';
 
 export class Enemy {
 
     private velocity: float;
     private _max_Health=100;
     private _current_Health: int;
+    private _damages: 10;
     private isDead: Boolean;
+    private _player_Health: PlayerHealth;
 
     public camera: FreeCamera;
     public scene: Scene;
@@ -146,6 +149,7 @@ export class Enemy {
     private attack() {
         if (!this.isDead && !this._attack.isPlaying)
             this._currentAnim = this._attack;
+            this._player_Health.takeDamages(this._damages);
             this._animateZombie();
     }
 

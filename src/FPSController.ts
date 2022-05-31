@@ -1,5 +1,6 @@
 import { Animation, Tools, RayHelper, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int, _TimeToken, CameraInputTypes, WindowsMotionController, Camera } from "@babylonjs/core";
 import { Enemy } from "./Enemy";
+import { PlayerHealth } from "./PlayerHealth";
 
 export class FPSController {
     private _camera: FreeCamera;
@@ -15,6 +16,11 @@ export class FPSController {
     private _cooldown_fire: int;
     private _cooldown_time: int;
     private _damages: int;
+
+
+    //health
+    private _max_Health:int;
+    private _player_Health: PlayerHealth;
 
     //sounds
     private _weaponSound: Sound;
@@ -73,7 +79,7 @@ export class FPSController {
         this.update();
         this.i = 0;
         this._cooldown_time = 0;
-
+        this._player_Health = new PlayerHealth(this._scene, this._weapon, this._max_Health);
     }
     /**
      * launched every 60ms 
@@ -411,6 +417,9 @@ export class FPSController {
         this._animatePlayer();
         this._cooldown_fire = 0.15;
         this._damages=30;
+        this._player_Health._max_Health=200;
+        this._player_Health._current_Health=200;
+
 
         return {
             mesh: env as Mesh,
@@ -455,7 +464,8 @@ export class FPSController {
         this._setUpAnimations();
         this._animatePlayer();
         this._damages=40;
-
+        this._player_Health._max_Health=200;
+        this._player_Health._current_Health=200;
         return {
             mesh: env as Mesh,
             animationGroups: result.animationGroups
@@ -497,6 +507,8 @@ export class FPSController {
         this._aim_walk.loopAnimation=true;
         this._cooldown_fire = 0.30;
         this._damages=15;
+        this._player_Health._max_Health=200;
+        this._player_Health._current_Health=200;
         this._setUpAnimations();
         this._animatePlayer();
 
@@ -540,6 +552,8 @@ export class FPSController {
         this._aim_walk.loopAnimation=true;
         this._cooldown_fire = 2;
         this._damages=200;
+        this._player_Health._max_Health=200;
+        this._player_Health._current_Health=200;
         this._setUpAnimations();
         this._animatePlayer();
 
