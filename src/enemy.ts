@@ -113,7 +113,7 @@ export class Enemy {
         let scene = this.scene;
         let camera = scene.getCameraByName("camera");
 
-        if (zombie.isEnabled()) {
+        if (this._damages=10) {
             // Calculating distances between the enemy and the player
             let initVec = zombie.position.clone();
             let distVec = Vector3.Distance(camera.position, zombie.position);
@@ -149,7 +149,7 @@ export class Enemy {
     private attack() {
         if (!this.isDead && !this._attack.isPlaying)
             this._currentAnim = this._attack;
-            this._player_Health.takeDamages(this._damages);
+            PlayerHealth._current_Health-=this._damages;
             this._animateZombie();
     }
 

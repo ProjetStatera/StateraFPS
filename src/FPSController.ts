@@ -79,7 +79,6 @@ export class FPSController {
         this.update();
         this.i = 0;
         this._cooldown_time = 0;
-        this._player_Health = new PlayerHealth(this._scene, this._weapon, this._max_Health);
     }
     /**
      * launched every 60ms 
@@ -417,10 +416,10 @@ export class FPSController {
         this._animatePlayer();
         this._cooldown_fire = 0.15;
         this._damages=30;
+        //this._player_Health._player_Mesh=env;
+        this._player_Health = new PlayerHealth(this._scene, env, 200);
+        PlayerHealth._current_Health=200;
         this._player_Health._max_Health=200;
-        this._player_Health._current_Health=200;
-
-
         return {
             mesh: env as Mesh,
             animationGroups: result.animationGroups
@@ -465,7 +464,7 @@ export class FPSController {
         this._animatePlayer();
         this._damages=40;
         this._player_Health._max_Health=200;
-        this._player_Health._current_Health=200;
+        PlayerHealth._current_Health=200;
         return {
             mesh: env as Mesh,
             animationGroups: result.animationGroups
@@ -508,7 +507,7 @@ export class FPSController {
         this._cooldown_fire = 0.30;
         this._damages=15;
         this._player_Health._max_Health=200;
-        this._player_Health._current_Health=200;
+        PlayerHealth._current_Health=200;
         this._setUpAnimations();
         this._animatePlayer();
 
@@ -553,7 +552,7 @@ export class FPSController {
         this._cooldown_fire = 2;
         this._damages=200;
         this._player_Health._max_Health=200;
-        this._player_Health._current_Health=200;
+        PlayerHealth._current_Health=200;
         this._setUpAnimations();
         this._animatePlayer();
 
