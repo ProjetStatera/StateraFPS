@@ -2,10 +2,14 @@ import * as BabylonViewer from '@babylonjs/viewer';
 import { Engine, Tools, KeyboardEventTypes, Space, AnimationGroup, int, AbstractMesh, float, ArcRotateCamera, OimoJSPlugin, SpotLight, HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager, StandardMaterial, PBRMaterial, Material } from "@babylonjs/core";
 import { FPSController } from "./FPSController";
 import { Player } from "./Player";
+import { PlayerHealth } from './PlayerHealth';
 
 export class Enemy {
 
     protected velocity: float;
+    protected _max_Health=100;
+    protected _current_Health:int;
+    protected _damages= 10;
     protected isDead: Boolean;
     protected isAttacking:Boolean;
     
@@ -40,6 +44,7 @@ export class Enemy {
         this.spawner(difficulty);
         this.update();
         Enemy.hitPlayer = false;
+        this._current_Health=this._max_Health;
     }
 
     protected async spawner(difficulty: int): Promise<any> {
@@ -62,21 +67,21 @@ export class Enemy {
             else {
                 clearInterval();
             }
-            console.log(Enemy.hitPlayer);
         }, 60);
     })
 }
 
 
-    public getHit() {
-        this._currentAnim = this._fallingBack;
+    public getHit(damagesTaken: int) {
+        this._current_Health-=damagesTaken;
+        this._currentAnim=this._hit;
         this._animateZombie();
     }
 
     public die() {
-        if (!this.isDead) {
+        if (this._current_Health<=0) {
             this.isDead = true;
-            this.getHit();
+            this._currentAnim = this._fallingBack;
             this.zombieMeshes.setEnabled(false);
         }
     }
@@ -140,6 +145,7 @@ export class Enemy {
     protected attack() {
         if (!this.isDead && !this._attack.isPlaying)
             this._currentAnim = this._attack;
+            PlayerHealth._current_Health-=this._damages;
             this._animateZombie();
     }
 

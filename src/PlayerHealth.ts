@@ -1,4 +1,4 @@
-import { AbstractMesh, Color3, CurrentScreenBlock, DynamicTexture, int, MeshBuilder, Scene, StandardMaterial, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, Color3, CurrentScreenBlock, DynamicTexture, int, Mesh,  MeshBuilder, Scene, StandardMaterial, Vector3 } from "@babylonjs/core";
 import { CubeMapToSphericalPolynomialTools } from "babylonjs";
 import { FPSController } from "./FPSController";
 
@@ -18,10 +18,20 @@ export class PlayerHealth {
         this.HealthBar();
     }
 
-    public takeDamages(damages:int)
-    {
-        PlayerHealth._current_Health-=damages;
-    }
+    /*protected update() {
+        this._scene.onReadyObservable.addOnce(() => {
+        setInterval(() => {
+            if(PlayerHealth._current_Health!=this._max_Health){
+                this.HealthBar();
+            }
+        }, 60);
+    })
+}*/
+
+    //public takeDamages(damages:int)
+    //{
+    //PlayerHealth._current_Health-=damages;
+    //}
 
     public Die()
     {
@@ -73,9 +83,9 @@ export class PlayerHealth {
         
         var currenthealth = PlayerHealth._current_Health;
         var maxhealth = this._max_Health;
-        this._scene.registerBeforeRender(function(){
-            healthBar.scaling.x = currenthealth / maxhealth;
-            healthBar.position.x = (1- (currenthealth/maxhealth));
+        this._scene.registerAfterRender(function(){
+            healthBar.scaling.x = PlayerHealth._current_Health / maxhealth;
+            healthBar.position.x = (1- (PlayerHealth._current_Health/maxhealth));
         
             if(healthBar.scaling.x < .6666)
             {
@@ -88,11 +98,11 @@ export class PlayerHealth {
                 healthBarTextMaterial.diffuseColor = Color3.Red();
             }
             
-            if(Math.round(currenthealth) == currenthealth)
+            if(Math.round(PlayerHealth._current_Health) == PlayerHealth._current_Health)
             {
                 var textureContent = dynamicTexture.getContext();
                 var size = dynamicTexture.getSize();
-                var text = currenthealth/2 + "%";
+                var text = PlayerHealth._current_Health/2 + "%";
                 textureContent.clearRect(0,0, size.width, size.height);
                 textureContent.font = "bold 120px Calibri";
                 var textSize = textureContent.measureText(text);
@@ -102,4 +112,6 @@ export class PlayerHealth {
             }
         })
     }
+    
+
 }

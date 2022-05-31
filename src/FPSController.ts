@@ -3,6 +3,7 @@ import { Boss } from "./Boss";
 import { Enemy } from "./Enemy";
 import { Mutant } from "./Mutant";
 import { Zombie } from "./zombie";
+import { PlayerHealth } from "./PlayerHealth";
 
 export class FPSController {
     private _camera: FreeCamera;
@@ -18,9 +19,14 @@ export class FPSController {
     //weapons
     private _weapon: AbstractMesh;
 
+    //health
+    private _max_Health:int;
+    private _player_Health: PlayerHealth;
+
     //cooldown to shot
     private _cooldown_fire: int;
     private _cooldown_time: int;
+    private _damages: int;
 
 
     //sounds
@@ -382,8 +388,10 @@ export class FPSController {
 
 
         for (let i = 0; i < this._zMeshes.length; i++) {
+            console.log(this._damages);
             if (hit.pickedMesh.name == this._zMeshes[i]) {
-                this._enemy.die();
+                console.log(this._damages);
+                this._zombie.getHit(this._damages);
             }
         }
     }
@@ -424,6 +432,9 @@ export class FPSController {
         this._setUpAnimations();
         this._animatePlayer();
         this._cooldown_fire = 0.15;
+        this._damages=30;
+        this._player_Health = new PlayerHealth(this._scene, env, 200);
+        PlayerHealth._current_Health=200;
 
         return {
             mesh: env as Mesh,
@@ -467,6 +478,9 @@ export class FPSController {
         this._cooldown_fire = 0.13;
         this._setUpAnimations();
         this._animatePlayer();
+        this._damages=40;
+        this._player_Health = new PlayerHealth(this._scene, env, 200);
+        PlayerHealth._current_Health=200;
 
         return {
             mesh: env as Mesh,
@@ -510,6 +524,9 @@ export class FPSController {
         this._cooldown_fire = 0.30;
         this._setUpAnimations();
         this._animatePlayer();
+        this._damages=15;
+        this._player_Health = new PlayerHealth(this._scene, env, 200);
+        PlayerHealth._current_Health=200;
 
         return {
             mesh: env as Mesh,
@@ -552,6 +569,9 @@ export class FPSController {
         this._cooldown_fire = 2;
         this._setUpAnimations();
         this._animatePlayer();
+        this._damages=200;
+        this._player_Health = new PlayerHealth(this._scene, env, 200);
+        PlayerHealth._current_Health=200;
 
         return {
             mesh: env as Mesh,
