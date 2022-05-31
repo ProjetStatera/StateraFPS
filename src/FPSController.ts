@@ -1,11 +1,18 @@
 import { Animation, Tools, RayHelper, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int, _TimeToken, CameraInputTypes, WindowsMotionController, Camera } from "@babylonjs/core";
+import { Boss } from "./Boss";
 import { Enemy } from "./Enemy";
+import { Mutant } from "./Mutant";
+import { Zombie } from "./zombie";
 
 export class FPSController {
     private _camera: FreeCamera;
     private _scene: Scene;
     private _canvas: HTMLCanvasElement;
-    private _zombie: Enemy;
+    private _enemy: Enemy;
+    private _zombie: Zombie;
+    private _mutant: Mutant;
+    private _boss: Boss;
+    
     private _zMeshes: Array<String>;
 
     //weapons
@@ -56,15 +63,17 @@ export class FPSController {
     private rightClickPressed = false;
 
     //speed
-    walkSpeed = 3;
-    runSpeed = 4;
-    sprintSpeed = 5;
+    public walkSpeed = 3;
+    public runSpeed = 4;
 
     //soon an Array of Enemy instead of a simple zombie
-    constructor(scene: Scene, canvas: HTMLCanvasElement, zombie: Enemy) {
+    constructor(scene: Scene, canvas: HTMLCanvasElement, enemy: Enemy, mutant:Mutant, boss:Boss, zombie:Zombie) {
         this._scene = scene;
         this._canvas = canvas;
+        this._enemy = enemy;
         this._zombie = zombie;
+        this._mutant = mutant;
+        this._boss = boss;
         this.createScar();
         this.createController();
         this.keyboardInput();
@@ -73,13 +82,12 @@ export class FPSController {
         this.update();
         this.i = 0;
         this._cooldown_time = 0;
-
     }
     /**
      * launched every 60ms 
      */
     private update() {
-        this._scene.onReadyObservable.addOnce(() => {
+        this._scene.onReadyObservable.add(() => {
             setInterval(() => {
                 if(this._cooldown_time<99999999)
                 {
@@ -88,7 +96,6 @@ export class FPSController {
                 else{
                     this._cooldown_time=0;
                 }
-                console.log(this._cooldown_time);
                 switch (this._camera.speed) {
                     case 0:
                         if(!this.rightClickPressed)
@@ -113,6 +120,16 @@ export class FPSController {
                         break;
                     default:
                         clearInterval();
+                }
+                if(Enemy.hitPlayer)
+                {
+                    this.walkSpeed = 0.2;
+                    this.runSpeed = 0.2;
+                    this.walk(this.walkSpeed);
+                }
+                else {
+                    this.walkSpeed = 3;
+                    this.runSpeed = 4;
                 }
             }, 60);
         })
@@ -158,7 +175,6 @@ export class FPSController {
 
     private swap(lastWeapon) {
         lastWeapon.dispose();
-        console.log(this.i);
         switch (this.i)
         {            
             case 0 : 
@@ -271,7 +287,6 @@ export class FPSController {
                             this.fire();
                             this._cooldown_time=0;
                         }
-                        console.log("click gauche down");
                     }
                     else if(pointerInfo.event.button == 2)
                     {
@@ -282,7 +297,6 @@ export class FPSController {
                         else{
                             this.rightClickPressed=false;
                         }
-                        console.log("click droit down");
                     }
                     break;
                 case PointerEventTypes.POINTERUP:
@@ -321,7 +335,7 @@ export class FPSController {
      * @param speed velocity of the player
      * @param animation launch this animation
      */
-    private walk(speed: int) {
+    public walk(speed: int) {
         this._camera.speed = speed;
     }
 
@@ -339,7 +353,7 @@ export class FPSController {
 
     //left and right click to set fire 
     private fire() {
-        var zombie = this._zombie;
+        var zombie = this._enemy;
         var origin = this._camera.position;
 
         this._weaponSound.play(); //sound
@@ -369,7 +383,7 @@ export class FPSController {
 
         for (let i = 0; i < this._zMeshes.length; i++) {
             if (hit.pickedMesh.name == this._zMeshes[i]) {
-                this._zombie.die();
+                this._enemy.die();
             }
         }
     }
