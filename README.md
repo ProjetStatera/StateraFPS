@@ -4,9 +4,6 @@ Hello,
 
 We are Ben-Jabria and Valentin Charles, we're 21 ans 20 years old
 and we decided to do this project for many reasons.
-<img align="left" src="/pics/adem.png" alt="screen"
-width="245" height="315">
-<img src="/pics/Valentin.png" alt="screen" width="245" height="315">
 Firstly, we are passionated by the development domain, so learning
 a new language and make a game were more than a choice to us, we were
 designed to do it.
@@ -47,7 +44,7 @@ Which is the commercialize it in the future.
 Thank you for reading all of that if you did so and I hope you will enjoy our creation ! 
 
 Below you can find the ways to install it and to launch it,
-and for the Keys Guide You can check on ("Touches_explication.pdf").
+and for the Keys Guide, you can check on ("Touches_explication.pdf").
 
 
 
