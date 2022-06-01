@@ -13,6 +13,8 @@ export class Boss extends Enemy {
         env.position = position;
         env.scaling = new Vector3(1.7, 1.7, -1.7);
         env.name = this.name;
+        this.maxHealth = 100;
+        this.currentHealth = this.maxHealth;
         this.zombieMeshes = env;
         this._attack = this.scene.getAnimationGroupByName("Skeletonzombie_t_avelange.Mutant_Jump_Attack_1");
         this._fallingBack = this.scene.getAnimationGroupByName("Skeletonzombie_t_avelange.Falling_Back_Death_1");
@@ -20,7 +22,7 @@ export class Boss extends Enemy {
         this._idle = this.scene.getAnimationGroupByName("Skeletonzombie_t_avelange.Idle_(1)");
         this._run = this.scene.getAnimationGroupByName("Skeletonzombie_t_avelange.Fast_Run_1");
         this._walk = this.scene.getAnimationGroupByName("Skeletonzombie_t_avelange.Walking_1");
-        this._walk2 = this.scene.getAnimationGroupByName("Skeletonzombie_t_avelange.Running_1");
+        this._scream = this.scene.getAnimationGroupByName("Skeletonzombie_t_avelange.Zombie_Scream_1");
         this._setUpAnimations();
         this._animateZombie()
 

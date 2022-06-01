@@ -9,7 +9,7 @@ import { Enemy } from "./Enemy";
 import { Mutant } from "./Mutant";
 import { Boss } from "./Boss";
 import { Zombie } from "./Zombie";
-import { Engine, int, KeyboardEventTypes, Tools, ArcRotateCamera, OimoJSPlugin, SpotLight, HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager, StandardMaterial, PBRMaterial, Material, float, Light } from "@babylonjs/core";
+import { UtilityLayerRenderer, Engine, int, KeyboardEventTypes, Tools, ArcRotateCamera, OimoJSPlugin, SpotLight, HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager, StandardMaterial, PBRMaterial, Material, float, Light } from "@babylonjs/core";
 import { Round } from "./Round";
 
 enum State { START = 0, GAME = 1, LOSE = 2, CUTSCENE = 3 }
@@ -28,7 +28,10 @@ class App {
     private _skyboxMaterial: SkyMaterial;
     private _gameScene: Scene;
     private _ambianceMusic: Sound;
+    private _dayAmbianceMusic: Sound;
     private _round: Round;
+    private _cooldown:int = 30000;
+    private _currentRound:int = 1;
 
     //all weapons
     private _fps: FPSController;
@@ -70,7 +73,6 @@ class App {
                     break;
                 case State.GAME:
                     this._scene.render();
-                    this.keyboardInput();
                     break;
                 case State.LOSE:
                     this._scene.render();
@@ -144,7 +146,7 @@ class App {
             hard.width = "5%";
             this._difficulty = 400;
             this._velocity = 0.4;
-            this._velocity2 = 0.7;
+            this._velocity2 = 0.5;
             this._velocity3 = 1;
         });
 
@@ -162,7 +164,7 @@ class App {
             hard.width = "5%";
             this._difficulty = 250;
             this._velocity = 0.7;
-            this._velocity2 = 1;
+            this._velocity2 = 0.8;
             this._velocity3 = 1.3;
         });
 
@@ -179,7 +181,7 @@ class App {
             hard.width = "8%";
             this._difficulty = 100;
             this._velocity = 1.1;
-            this._velocity2 = 1.3;
+            this._velocity2 = 1.2;
             this._velocity3 = 1.5;
         });
 
@@ -205,10 +207,16 @@ class App {
         light1.range = 100;
         this._light1 = light1;
 
+        this._dayAmbianceMusic = new Sound("dayAmbianceMusic", "sounds/sunnyday.mp3", this._scene ,null, {
+            loop: true,
+            autoplay: false,
+            volume: 0.07
+          });
+
         //sound         
         this._ambianceMusic = new Sound("ambianceMusic", "sounds/music.mp3", this._scene ,null, {
             loop: true,
-            autoplay: true,
+            autoplay: false,
             volume: 0.8
           });
 
@@ -237,23 +245,6 @@ class App {
         })
     }
 
-    /**
-     * day/night
-     */
-    private keyboardInput(): void {
-        this._scene.onKeyboardObservable.add((kbInfo) => {
-            switch (kbInfo.type) {
-                case KeyboardEventTypes.KEYDOWN:
-                    switch (kbInfo.event.key) {
-                        case 'n':
-                            this._round.day();
-                            break;
-                    }
-                    break;
-            }
-        })
-    }
-
     private createEnemies()
     {
         this._enemies = 
@@ -269,6 +260,33 @@ class App {
         {
             enemy.zombieMeshes.setEnabled(false);
         }
+    }
+    private enableEnemies(){
+        for(var enemy of this._enemies)
+        {
+            enemy.zombieMeshes.setEnabled(true);
+        }
+    }
+
+    private async day(){
+        this._round.day();
+        this.disableEnemies();
+        await Tools.DelayAsync(10000);
+        this.night();
+    }
+    private async night(){
+        this._round.night();
+        this._zombie.currentHealth = this._zombie.maxHealth;
+        this._mutant.currentHealth = this._mutant.maxHealth;
+        this._boss.currentHealth = this._boss.maxHealth;
+        this._zombie.changePosition();
+        this._mutant.changePosition();
+        this._boss.changePosition();
+        this.enableEnemies();
+        await Tools.DelayAsync(this._cooldown);
+        this._cooldown += 30000;
+        this._currentRound += 1;
+        this.day();
     }
 
     /**
@@ -309,8 +327,8 @@ class App {
         this._scene.attachControl();
         this._scene.debugLayer.show();
         this.disableEnemies();
-        this._round = new Round(this._scene,this._canvas,this._light1,this._skyboxMaterial,this._ambianceMusic);
-        this._round.day();
+        this._round = new Round(this._scene,this._canvas,this._light1,this._skyboxMaterial,this._ambianceMusic, this._dayAmbianceMusic);
+        this.day();
     }
 
     /**
