@@ -4,7 +4,7 @@ import { Boss } from "./Boss";
 import { Enemy } from "./Enemy";
 import { Mutant } from "./Mutant";
 import { PlayerHealth } from "./PlayerHealth";
-import { Zombie } from "./zombie";
+import { Zombie } from "./Zombie";
 
 export class FPSController {
     private _camera: FreeCamera;
