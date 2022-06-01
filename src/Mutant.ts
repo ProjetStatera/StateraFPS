@@ -13,6 +13,8 @@ export class Mutant extends Enemy {
         env.position = position;
         env.scaling = new Vector3(1.5, 1.5, -1.5);
         env.name = this.name;
+        this.maxHealth = 130;
+        this.currentHealth = this.maxHealth;
         this.zombieMeshes = env;
         this._attack = this.scene.getAnimationGroupByName("Parasite_l_starkie.Mutant_Jump_Attack");
         this._fallingBack = this.scene.getAnimationGroupByName("Parasite_l_starkie.Falling_Back_Death");
@@ -20,7 +22,6 @@ export class Mutant extends Enemy {
         this._idle = this.scene.getAnimationGroupByName("Parasite_l_starkie.Idle_(1)");
         this._run = this.scene.getAnimationGroupByName("Parasite_l_starkie.Fast_Run");
         this._walk = this.scene.getAnimationGroupByName("Parasite_l_starkie.Walking");
-        this._walk2 = this.scene.getAnimationGroupByName("Parasite_l_starkie.Running");
         this._scream = this.scene.getAnimationGroupByName("Parasite_l_starkie.Zombie_Scream");
         this._setUpAnimations();
         this._animateZombie()

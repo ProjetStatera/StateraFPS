@@ -1,11 +1,9 @@
-import { Animation, DynamicTexture, Tools, RayHelper, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int, _TimeToken, CameraInputTypes, WindowsMotionController, Camera } from "@babylonjs/core";
+import { Animation, Tools, RayHelper, PointLight, PBRMetallicRoughnessMaterial, SpotLight, DirectionalLight, OimoJSPlugin, PointerEventTypes, Space, Engine, SceneLoader, Scene, Vector3, Ray, TransformNode, Mesh, Color3, Color4, UniversalCamera, Quaternion, AnimationGroup, ExecuteCodeAction, ActionManager, ParticleSystem, Texture, SphereParticleEmitter, Sound, Observable, ShadowGenerator, FreeCamera, ArcRotateCamera, EnvironmentTextureTools, Vector4, AbstractMesh, KeyboardEventTypes, int, _TimeToken, CameraInputTypes, WindowsMotionController, Camera } from "@babylonjs/core";
+import { float } from "babylonjs";
 import { Boss } from "./Boss";
 import { Enemy } from "./Enemy";
 import { Mutant } from "./Mutant";
 import { Zombie } from "./zombie";
-import { PlayerHealth } from "./PlayerHealth";
-import { Image, Control, Rectangle } from "@babylonjs/gui";
-import { MeshBuilder } from "babylonjs";
 
 export class FPSController {
     private _camera: FreeCamera;
@@ -15,29 +13,23 @@ export class FPSController {
     private _zombie: Zombie;
     private _mutant: Mutant;
     private _boss: Boss;
-    
+    private _damage: float;
+    private _lastPost: Vector3;
     private _zMeshes: Array<String>;
 
     //weapons
     private _weapon: AbstractMesh;
 
-    //health
-    private _max_Health:int;
-    private _player_Health: PlayerHealth;
-
     //cooldown to shot
     private _cooldown_fire: int;
     private _cooldown_time: int;
-    private _damages: int;
-    public static _ammo: int;
-    public static _max_ammo: int;
-
 
     //sounds
     private _weaponSound: Sound;
     private _flashlightSound: Sound;
-    private _ambianceSound: Sound;
-    private _empty_ammo: Sound;
+    private _walkSound: Sound;
+    private _runSound: Sound;
+    private _hurt: Sound;
 
     //headLight
     private _light: SpotLight;
@@ -72,21 +64,20 @@ export class FPSController {
     private controlPressed: boolean = false;
     private controlIPressed: int = 0;
     private rightClickPressed = false;
-    private reloadPressed = false;
 
     //speed
     public walkSpeed = 3;
     public runSpeed = 4;
 
     //soon an Array of Enemy instead of a simple zombie
-    constructor(scene: Scene, canvas: HTMLCanvasElement, enemy: Enemy, mutant:Mutant, boss:Boss, zombie:Zombie) {
+    constructor(scene: Scene, canvas: HTMLCanvasElement, enemy: Enemy, mutant: Mutant, boss: Boss, zombie: Zombie) {
         this._scene = scene;
         this._canvas = canvas;
         this._enemy = enemy;
         this._zombie = zombie;
         this._mutant = mutant;
         this._boss = boss;
-        this.createScar();
+        this.createPistol();
         this.createController();
         this.keyboardInput();
         this.setupFlashlight();
@@ -94,7 +85,22 @@ export class FPSController {
         this.update();
         this.i = 0;
         this._cooldown_time = 0;
-        this._empty_ammo = new Sound ("emptyammo","sounds/emptyammo.mp3",this._scene);
+        this._flashlightSound = new Sound("flashlightSound", "sounds/flashlight.mp3", this._scene);
+        this._walkSound = new Sound("walk", "sounds/walk.mp3", this._scene, null, {
+            loop: true,
+            autoplay: false,
+            volume: 2.4
+        });
+        this._runSound = new Sound("run", "sounds/run.mp3", this._scene, null, {
+            loop: true,
+            autoplay: false,
+            volume: 0.3
+        });
+        this._hurt = new Sound("hurt", "sounds/hurt.mp3", this._scene, null, {
+            loop: false,
+            autoplay: false,
+            volume: 0.3
+        });
     }
     /**
      * launched every 60ms 
@@ -102,36 +108,27 @@ export class FPSController {
     private update() {
         this._scene.onReadyObservable.add(() => {
             setInterval(() => {
-                if(this._cooldown_time<99999999)
-                {
-                    this._cooldown_time+=1
+                if (this._cooldown_time < 99999999) {
+                    this._cooldown_time += 1
                 }
-                else{
-                    this._cooldown_time=0;
+                else {
+                    this._cooldown_time = 0;
                 }
                 switch (this._camera.speed) {
-
                     case 0:
-                        if(!this.reloadPressed){
-                            if(!this.rightClickPressed)
-                            {
-                                this.manageAnimation(this._idle);
-                            }
-                            else{
-                                this.manageAnimation(this._aim_idle);
-                            }
-                        }   
+                        if (!this.rightClickPressed) {
+                            this.manageAnimation(this._idle);
+                        }
+                        else {
+                            this.manageAnimation(this._aim_idle);
+                        }
                         break;
                     case this.walkSpeed:
-                        if(!this.reloadPressed)
-                        {
-                            if(!this.rightClickPressed)
-                            {
-                                this.manageAnimation(this._walk);
-                            }
-                            else{
-                                this.manageAnimation(this._aim_walk);
-                            }
+                        if (!this.rightClickPressed) {
+                            this.manageAnimation(this._walk);
+                        }
+                        else {
+                            this.manageAnimation(this._aim_walk);
                         }
                         break;
                     case this.runSpeed:
@@ -140,8 +137,7 @@ export class FPSController {
                     default:
                         clearInterval();
                 }
-                if(Enemy.hitPlayer)
-                {
+                if (Enemy.hitPlayer) {
                     this.walkSpeed = 0.2;
                     this.runSpeed = 0.2;
                     this.walk(this.walkSpeed);
@@ -190,27 +186,21 @@ export class FPSController {
         camera.inertia = 0.1;
     }
 
-    private i : int;
+    private i: int;
 
     private swap(lastWeapon) {
         lastWeapon.dispose();
-        switch (this.i)
-        {            
-            case 0 : 
+        switch (this.i) {
+            case 0:
                 this.createShotgun();
                 this.i++;
                 break;
-            case 1 : 
-                this.createPistol();
-                this.i++;
-                break;
-            case 2 : 
-                this.createSniper();
-                this.i++;
-                break;
-            case 3 : 
+            case 1:
                 this.createScar();
-                this.i = 0;
+                this.i++;
+                break;
+            case 2:
+                this.createSniper();
                 break;
         }
     }
@@ -223,33 +213,34 @@ export class FPSController {
                         case 'z':
                             this.zPressed = true;
                             this.walk(this.walkSpeed);
+                            this.walkSound();
                             break;
                         case 's':
                             this.sPressed = true;
                             this.walk(this.walkSpeed);
+                            this.walkSound();
                             break;
                         case 'q':
                             this.qPressed = true;
                             this.walk(this.walkSpeed);
+                            this.walkSound();
                             break;
                         case 'd':
                             this.dPressed = true;
                             this.walk(this.walkSpeed);
+                            this.walkSound();
                             break;
                         case 'Shift':
-                            if(this.zPressed || this.qPressed || this.sPressed || this.dPressed)
-                            {
+                            if (this.zPressed || this.qPressed || this.sPressed || this.dPressed) {
                                 this.walk(this.runSpeed);
+                                this._walkSound.stop();
+                                if (!this._runSound.isPlaying) {
+                                    this._runSound.play();
+                                }
                             }
                             break;
                         case 'r':
-                            if(this._currentAnim!=this._run)
-                            {
-                                this.reloadPressed=true;
-                                this._currentAnim=this._reload;
-                                this._animatePlayer();
-                            }
-                            
+                            // reload
                             break;
                         case 'f':
                             this._flashlightSound.play();
@@ -260,14 +251,10 @@ export class FPSController {
                                 this._light.intensity = 5000;
                             }
                             break;
-                        case 'p':
-                            this.swap(this._weapon);
-                            break;
                         case '&':
-                            if(this._cooldown_fire<=this._cooldown_time/60)
-                            {
+                            if (this._cooldown_fire <= this._cooldown_time / 60) {
                                 this.fire();
-                                this._cooldown_time=0;
+                                this._cooldown_time = 0;
                             }
                             break;
 
@@ -282,26 +269,26 @@ export class FPSController {
                         case 'z':
                             this.zPressed = false;
                             this.allUnpressed();
+                            this.stopwalkSound();
                             break;
                         case 's':
                             this.sPressed = false;
                             this.allUnpressed();
+                            this.stopwalkSound();
                             break;
                         case 'q':
                             this.qPressed = false;
                             this.allUnpressed();
+                            this.stopwalkSound();
                             break;
                         case 'd':
                             this.dPressed = false;
                             this.allUnpressed();
+                            this.stopwalkSound();
                             break;
                         case 'Shift':
                             this.allUnpressed();
-                            break;
-                        case 'r':
-                            this.reloadPressed=false;
-                            FPSController._ammo=FPSController._max_ammo;
-                            this.allUnpressed();
+                            this.stopwalkSound();
                             break;
                     }
                     break;
@@ -310,35 +297,47 @@ export class FPSController {
         this._scene.onPointerObservable.add((pointerInfo) => {
             switch (pointerInfo.type) {
                 case PointerEventTypes.POINTERDOWN:
-                    if(pointerInfo.event.button === 0)
-                    {
-                        if(this._cooldown_fire<=this._cooldown_time/60)
-                        {
+                    if (pointerInfo.event.button === 0) {
+                        if (this._cooldown_fire <= this._cooldown_time / 60) {
                             this.fire();
-                            this._cooldown_time=0;
+                            this._cooldown_time = 0;
                         }
                     }
-                    else if(pointerInfo.event.button == 2)
-                    {
-                        if(!this.rightClickPressed)
-                        {
-                            this.rightClickPressed=true;
-                        }
-                        else{
-                            this.rightClickPressed=false;
+                    else if (pointerInfo.event.button == 2) {
+                        if (!this.rightClickPressed) {
+                            this.rightClickPressed = true;
+                            /*this._lastPost = this._weapon.position;
+                            this._weapon.position = new Vector3(0, -6.72, 1);
+                        }*/}
+                        else {
+                            this.rightClickPressed = false;
+                            //this._weapon.position = this._lastPost;
                         }
                     }
                     break;
                 case PointerEventTypes.POINTERUP:
-                    if(pointerInfo.event.button === 2)
-                    {
+                    if (pointerInfo.event.button === 2) {
                         console.log("click droit up");
                     }
+                    break;
             }
         })
     }
 
-    
+    public changeWeapon() {
+        this.swap(this._weapon);
+    }
+
+    private walkSound() {
+        if (!this._walkSound.isPlaying) {
+            this._runSound.stop();
+            this._walkSound.play();
+        }
+    }
+    private stopwalkSound() {
+        if (this._walkSound.isPlaying)
+            this._walkSound.stop();
+    }
 
     private allUnpressed() {
         if (!this.zPressed && !this.qPressed && !this.sPressed && !this.dPressed) {
@@ -358,8 +357,7 @@ export class FPSController {
      * zombie's meshes, used to know if the zombie is hit
      */
     private setupAllMeshes() {
-        this._zMeshes = ["node8", "node10", "node12", "node14", "node16", "node18", "node20", "node22",
-            "node24", "node26", "node28", "node30", "node32", "node34",];
+        this._zMeshes = ["skeletonZombie", "parasiteZombie", "Ch10_primitive0", "Ch10_primitive1"];
     }
 
     /**
@@ -369,6 +367,13 @@ export class FPSController {
      */
     public walk(speed: int) {
         this._camera.speed = speed;
+        if (speed == 0) {
+            this.stopwalkSound();
+            if (this._runSound.isPlaying) {
+                this._runSound.stop();
+            }
+
+        }
     }
 
     /**
@@ -387,53 +392,46 @@ export class FPSController {
     private fire() {
         var zombie = this._enemy;
         var origin = this._camera.position;
-        if(FPSController._ammo>0)
-        {
-            FPSController._ammo -=1;
-            this._weaponSound.play(); //sound
-        
 
-            var forward = new Vector3(0, 0, 1);
-            forward = this.vecToLocal(forward, this._camera);
+        this._weaponSound.play(); //sound
+        var forward = new Vector3(0, 0, 1);
+        forward = this.vecToLocal(forward, this._camera);
 
-            var direction = forward.subtract(origin);
-            direction = Vector3.Normalize(direction);
+        var direction = forward.subtract(origin);
+        direction = Vector3.Normalize(direction);
 
-            var length = 1000;
+        var length = 1000;
 
-            var ray = new Ray(origin, direction, length);
+        var ray = new Ray(origin, direction, length);
 
-            var hit = this._scene.pickWithRay(ray);
+        var hit = this._scene.pickWithRay(ray);
 
-            //animation
-            //set animation
-            if(!this.rightClickPressed)
-            {
-                this._fire.play(false);
-            }
-            else{
-                this._aim_shot.play(false);
-                this._animatePlayer();
-            }
+        //animation
+        //set animation
+        if (!this.rightClickPressed) {
+            this._fire.play(false);
+        }
+        else {
+            this._aim_shot.play(false);
+            this._animatePlayer();
+        }
 
-
-            for (let i = 0; i < this._zMeshes.length; i++) {
-                console.log(this._damages);
-                if (hit.pickedMesh.name == this._zMeshes[i]) {
-                    console.log(this._damages);
-                    this._zombie.getHit(this._damages);
+        console.log(hit.pickedMesh.name);
+        for (let i = 0; i < this._zMeshes.length; i++) {
+            if (hit.pickedMesh.name == this._zMeshes[i]) {
+                switch (this._zMeshes[i]) {
+                    case "skeletonZombie":
+                        this._boss.getHit(this._damage);
+                        break;
+                    case "parasiteZombie":
+                        this._mutant.getHit(this._damage);
+                        break;
+                    case "Ch10_primitive0" || "Ch10_primitive1":
+                        this._zombie.getHit(this._damage);
                 }
+
             }
         }
-        else{
-            this.reload();
-        }
-
-    }
-
-    private reload()
-    {
-        this._empty_ammo.play();
     }
 
     private async createScar(): Promise<any> {
@@ -451,8 +449,7 @@ export class FPSController {
         result.meshes[0].scaling = new Vector3(4, 4, -3);
 
         //audio effect 
-        this._weaponSound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
-        this._flashlightSound = new Sound("flashlightSound", "sounds/flashlight.mp3", this._scene);
+        this._weaponSound = new Sound("scarsound", "sounds/scarshot.mp3", this._scene);
 
         //animations
         this._end = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Hide");
@@ -468,15 +465,11 @@ export class FPSController {
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
-        this._aim_walk.loopAnimation=true;
+        this._aim_walk.loopAnimation = true;
         this._setUpAnimations();
         this._animatePlayer();
         this._cooldown_fire = 0.15;
-        this._damages=30;
-        FPSController._ammo=30;
-        FPSController._max_ammo=30;
-        this._player_Health = new PlayerHealth(this._scene, env, 200);
-        PlayerHealth._current_Health=200;
+        this._damage = 25;
 
         return {
             mesh: env as Mesh,
@@ -499,7 +492,7 @@ export class FPSController {
         result.meshes[0].scaling = new Vector3(4, 4, -4);
 
         //audio effect 
-        this._weaponSound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
+        this._weaponSound = new Sound("shotgunsound", "sounds/shotgun.mp3", this._scene);
 
         //animations
         this._end = this._scene.getAnimationGroupByName("Hands_Shotgun.Hide");
@@ -516,15 +509,11 @@ export class FPSController {
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
-        this._aim_walk.loopAnimation=true;
-        this._cooldown_fire = 0.13;
+        this._aim_walk.loopAnimation = true;
+        this._cooldown_fire = 0.3;
         this._setUpAnimations();
         this._animatePlayer();
-        this._damages=40;
-        FPSController._ammo=5;
-        FPSController._max_ammo=5;
-        this._player_Health = new PlayerHealth(this._scene, env, 200);
-        PlayerHealth._current_Health=200;
+        this._damage = 50;
 
         return {
             mesh: env as Mesh,
@@ -547,7 +536,7 @@ export class FPSController {
         result.meshes[0].scaling = new Vector3(4, 4, -4);
 
         //audio effect 
-        this._weaponSound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
+        this._weaponSound = new Sound("pistolsound", "sounds/pistol.mp3", this._scene);
 
         //animations
         this._end = this._scene.getAnimationGroupByName("Hands_Gun02.Hide");
@@ -564,15 +553,11 @@ export class FPSController {
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
-        this._aim_walk.loopAnimation=true;
-        this._cooldown_fire = 0.30;
+        this._aim_walk.loopAnimation = true;
+        this._cooldown_fire = 0.2;
         this._setUpAnimations();
         this._animatePlayer();
-        this._damages=15;
-        FPSController._ammo=50;
-        FPSController._max_ammo=50;
-        this._player_Health = new PlayerHealth(this._scene, env, 200);
-        PlayerHealth._current_Health=200;
+        this._damage = 15;
 
         return {
             mesh: env as Mesh,
@@ -590,12 +575,12 @@ export class FPSController {
         for (let i = 1; i < 9; i++) {
             result.meshes[i].renderingGroupId = 1;
         }
-        result.meshes[0].position = new Vector3(0, -6.70, 1);
+        result.meshes[0].position = new Vector3(0, -6.80, 1);
         result.meshes[0].rotation = new Vector3(0, 0, 0);
         result.meshes[0].scaling = new Vector3(4, 4, -3);
 
         //audio effect 
-        this._weaponSound = new Sound("ak47Sound", "sounds/ak47shot.mp3", this._scene);
+        this._weaponSound = new Sound("snipersound", "sounds/snipershot.mp3", this._scene);
 
         //animations
         this._end = this._scene.getAnimationGroupByName("Hands_Sniper_Rifle.Hide");
@@ -611,15 +596,11 @@ export class FPSController {
         this._run.loopAnimation = true;
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
-        this._aim_walk.loopAnimation=true;
-        this._cooldown_fire = 2;
+        this._aim_walk.loopAnimation = true;
+        this._cooldown_fire = 0.7;
         this._setUpAnimations();
         this._animatePlayer();
-        this._damages=200;
-        FPSController._ammo=10;
-        FPSController._max_ammo=10;
-        this._player_Health = new PlayerHealth(this._scene, env, 200);
-        PlayerHealth._current_Health=200;
+        this._damage = 100;
 
         return {
             mesh: env as Mesh,
@@ -631,7 +612,7 @@ export class FPSController {
         this._scene.stopAllAnimations();
         //initialize current and previous
         this._currentAnim = this._start;
-        this._currentAnim.loopAnimation=false;
+        this._currentAnim.loopAnimation = false;
         this._prevAnim = this._end;
     }
 

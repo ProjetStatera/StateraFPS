@@ -2,24 +2,22 @@ import * as BabylonViewer from '@babylonjs/viewer';
 import { Engine, Tools, KeyboardEventTypes, Space, AnimationGroup, int, AbstractMesh, float, ArcRotateCamera, OimoJSPlugin, SpotLight, HemisphericLight, Scene, Animation, Vector3, Mesh, Color3, Color4, ShadowGenerator, GlowLayer, PointLight, FreeCamera, CubeTexture, Sound, PostProcess, Effect, SceneLoader, Matrix, MeshBuilder, Quaternion, AssetsManager, StandardMaterial, PBRMaterial, Material } from "@babylonjs/core";
 import { FPSController } from "./FPSController";
 import { Player } from "./Player";
-import { PlayerHealth } from './PlayerHealth';
 
 export class Enemy {
 
     protected velocity: float;
-    protected _max_Health=100;
-    protected _current_Health:int;
-    protected _damages= 10;
     protected isDead: Boolean;
     protected isAttacking:Boolean;
-    
+
+   
     public static hitPlayer:boolean;
     public camera: FreeCamera;
     public scene: Scene;
     public _canvas: HTMLCanvasElement;
     public zombieMeshes: AbstractMesh;
     public name:string;
-    public enemyList: Array<Enemy>; //coming soon
+    public currentHealth:float;
+    public maxHealth:float;
 
     // animation trackers
     protected _currentAnim: AnimationGroup = null;
@@ -34,6 +32,9 @@ export class Enemy {
     protected _walk: AnimationGroup;
     protected _walk2: AnimationGroup;
     protected _scream: AnimationGroup;
+
+    protected _ambiance:Sound;
+    protected _ambiance2:Sound;
     
 
     constructor(scene: Scene, canvas: HTMLCanvasElement, difficulty, velocity: int, name: string) {
@@ -44,7 +45,16 @@ export class Enemy {
         this.spawner(difficulty);
         this.update();
         Enemy.hitPlayer = false;
-        this._current_Health=this._max_Health;
+        this._ambiance = new Sound("ambiance", "sounds/zombieambiance.mp3", this.scene,null,{
+            loop: false,
+            autoplay: false,
+            volume: 0.2
+          });
+        this._ambiance2 = new Sound("ambiance2", "sounds/zombieambiance2.mp3", this.scene,null,{
+            loop: false,
+            autoplay: false,
+            volume: 0.2
+          });
     }
 
     protected async spawner(difficulty: int): Promise<any> {
@@ -53,6 +63,16 @@ export class Enemy {
 
     //signature
     public async CreateEnemy(position: Vector3): Promise<any> {
+
+    }
+
+    public changePosition(){
+        this.zombieMeshes.position = new Vector3(this.getRandomInt(250), 0, this.getRandomInt(250));
+        this.zombieMeshes.setEnabled(true);
+        this.isDead = false;
+        this._currentAnim = this._idle;
+        this._animateZombie();
+        this.currentHealth = this.maxHealth;
     }
 
     /**
@@ -71,18 +91,30 @@ export class Enemy {
     })
 }
 
+    public async getHit(damage: float) {
+        var velocity2 = this.velocity;
 
-    public getHit(damagesTaken: int) {
-        this._current_Health-=damagesTaken;
-        this._currentAnim=this._hit;
+        this.velocity = 0;
+        this._currentAnim = this._hit;
         this._animateZombie();
+        this.currentHealth -= damage;
+        if(this.currentHealth <= 0)
+        {
+            this.die();
+        }
+        await Tools.DelayAsync(250);
+        this.velocity = velocity2;
     }
 
-    public die() {
-        if (this._current_Health<=0) {
+    public async die() {
+        if (!this.isDead) {
             this.isDead = true;
             this._currentAnim = this._fallingBack;
+            this._animateZombie();
+            await Tools.DelayAsync(3000);
             this.zombieMeshes.setEnabled(false);
+            await Tools.DelayAsync(1000);
+            this.changePosition();
         }
     }
 
@@ -109,7 +141,7 @@ export class Enemy {
                 this.stunPlayer()
             }
             // Move enemy towards the player and stops slightly ahead
-            else if (velocity >= 0.6) {
+            else if (velocity >= 0.8) {
                 this._currentAnim = this._run;
                 this._animateZombie();
             }
@@ -117,8 +149,8 @@ export class Enemy {
                 this._currentAnim = this._idle;
                 this._animateZombie();
             }
-            else if (velocity > 0.05 && velocity < 0.6) {
-                this._currentAnim = this._walk2;
+            else if (velocity >= 0.05 && velocity < 0.8) {
+                this._currentAnim = this._walk;
                 this._animateZombie();
             }
             distVec -= velocity;
@@ -133,7 +165,7 @@ export class Enemy {
     protected async stunPlayer()
     {
         Enemy.hitPlayer = true;
-        await Tools.DelayAsync(5000);
+        await Tools.DelayAsync(4000);
         this._currentAnim = this._scream;
         this._animateZombie();
         Enemy.hitPlayer = false;
@@ -145,7 +177,6 @@ export class Enemy {
     protected attack() {
         if (!this.isDead && !this._attack.isPlaying)
             this._currentAnim = this._attack;
-            PlayerHealth._current_Health-=this._damages;
             this._animateZombie();
     }
 
@@ -166,6 +197,7 @@ export class Enemy {
         this._walk.loopAnimation = true;
         this._walk2.loopAnimation = true;
         this._attack.loopAnimation = false;
+        this._hit.loopAnimation = false;
         this._walk2.speedRatio = 2;
     }
 
