@@ -196,15 +196,11 @@ export class FPSController {
                 this.i++;
                 break;
             case 1:
-                this.createPistol();
+                this.createScar();
                 this.i++;
                 break;
             case 2:
                 this.createSniper();
-                this.i++;
-                break;
-            case 3:
-                this.createScar();
                 break;
         }
     }
@@ -310,12 +306,12 @@ export class FPSController {
                     else if (pointerInfo.event.button == 2) {
                         if (!this.rightClickPressed) {
                             this.rightClickPressed = true;
-                            this._lastPost = this._weapon.position;
-                            this._weapon.position = new Vector3(0, -6.65, 1);
-                        }
+                            /*this._lastPost = this._weapon.position;
+                            this._weapon.position = new Vector3(0, -6.72, 1);
+                        }*/}
                         else {
                             this.rightClickPressed = false;
-                            this._weapon.position = this._lastPost;
+                            //this._weapon.position = this._lastPost;
                         }
                     }
                     break;
@@ -328,8 +324,7 @@ export class FPSController {
         })
     }
 
-    public changeWeapon()
-    {
+    public changeWeapon() {
         this.swap(this._weapon);
     }
 
@@ -515,7 +510,7 @@ export class FPSController {
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
         this._aim_walk.loopAnimation = true;
-        this._cooldown_fire = 0.13;
+        this._cooldown_fire = 0.3;
         this._setUpAnimations();
         this._animatePlayer();
         this._damage = 50;
@@ -559,7 +554,7 @@ export class FPSController {
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
         this._aim_walk.loopAnimation = true;
-        this._cooldown_fire = 0.30;
+        this._cooldown_fire = 0.2;
         this._setUpAnimations();
         this._animatePlayer();
         this._damage = 15;
@@ -602,7 +597,7 @@ export class FPSController {
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
         this._aim_walk.loopAnimation = true;
-        this._cooldown_fire = 2;
+        this._cooldown_fire = 0.7;
         this._setUpAnimations();
         this._animatePlayer();
         this._damage = 100;

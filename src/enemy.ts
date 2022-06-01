@@ -67,10 +67,12 @@ export class Enemy {
     }
 
     public changePosition(){
-        this.zombieMeshes.position = new Vector3(this.getRandomInt(250), 0, this.getRandomInt(250))
+        this.zombieMeshes.position = new Vector3(this.getRandomInt(250), 0, this.getRandomInt(250));
+        this.zombieMeshes.setEnabled(true);
         this.isDead = false;
         this._currentAnim = this._idle;
         this._animateZombie();
+        this.currentHealth = this.maxHealth;
     }
 
     /**

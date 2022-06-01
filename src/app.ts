@@ -270,6 +270,11 @@ class App {
 
     private async day(){
         this._round.day();
+        this._currentRound += 1;
+        if(this._currentRound == 6 || this._currentRound == 10 || this._currentRound == 15 )
+        {
+            this._fps.changeWeapon();
+        }
         this.disableEnemies();
         await Tools.DelayAsync(10000);
         this.night();
@@ -285,7 +290,6 @@ class App {
         this.enableEnemies();
         await Tools.DelayAsync(this._cooldown);
         this._cooldown += 30000;
-        this._currentRound += 1;
         this.day();
     }
 
@@ -329,6 +333,7 @@ class App {
         this.disableEnemies();
         this._round = new Round(this._scene,this._canvas,this._light1,this._skyboxMaterial,this._ambianceMusic, this._dayAmbianceMusic);
         this.day();
+        this.crosshair();
     }
 
     /**
@@ -448,6 +453,11 @@ class App {
         document.body.appendChild(this._canvas);
 
         return this._canvas;
+    }
+
+    private crosshair()
+    {
+        let img = new Image("crosshair", "/sprites/crosshair.png" )
     }
 }
 new App();

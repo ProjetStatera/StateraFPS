@@ -13,7 +13,7 @@ export class Boss extends Enemy {
         env.position = position;
         env.scaling = new Vector3(1.7, 1.7, -1.7);
         env.name = this.name;
-        this.maxHealth = 100;
+        this.maxHealth = 110;
         this.currentHealth = this.maxHealth;
         this.zombieMeshes = env;
         this._attack = this.scene.getAnimationGroupByName("Skeletonzombie_t_avelange.Mutant_Jump_Attack_1");
