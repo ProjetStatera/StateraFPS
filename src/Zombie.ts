@@ -14,6 +14,7 @@ export class Zombie extends Enemy {
     env.scaling = new Vector3(1.5, 1.5, -1.5);
     env.name = this.name;
     this.maxHealth = 70;
+    this.damage = 14;
     this.currentHealth = this.maxHealth;
     this.zombieMeshes = env;
     this._attack = this.scene.getAnimationGroupByName("Ch10_nonPBR.Zombie_Punching");

@@ -3,6 +3,7 @@ import { float } from "babylonjs";
 import { Boss } from "./Boss";
 import { Enemy } from "./Enemy";
 import { Mutant } from "./Mutant";
+import { PlayerHealth } from "./PlayerHealth";
 import { Zombie } from "./zombie";
 
 export class FPSController {
@@ -13,9 +14,10 @@ export class FPSController {
     private _zombie: Zombie;
     private _mutant: Mutant;
     private _boss: Boss;
-    private _damages: float;
+    private _damage: float;
     private _lastPost: Vector3;
     private _zMeshes: Array<String>;
+    private _playerHealth: PlayerHealth;
 
     //weapons
     private _weapon: AbstractMesh;
@@ -105,7 +107,8 @@ export class FPSController {
             autoplay: false,
             volume: 0.3
         });
-        this._empty_ammo = new Sound ("emptyammo","sounds/emptyammo.mp3",this._scene);
+        this._empty_ammo = new Sound("emptyammo", "sounds/emptyammo.mp3", this._scene);
+        this._playerHealth = new PlayerHealth(this._scene,this._weapon,200);
     }
     /**
      * launched every 60ms 
@@ -121,24 +124,21 @@ export class FPSController {
                 }
                 switch (this._camera.speed) {
                     case 0:
-                        if(!this.reloadPressed){
-                            if(!this.rightClickPressed)
-                            {
+                        if (!this.reloadPressed) {
+                            if (!this.rightClickPressed) {
                                 this.manageAnimation(this._idle);
                             }
-                            else{
+                            else {
                                 this.manageAnimation(this._aim_idle);
                             }
-                        }   
+                        }
                         break;
                     case this.walkSpeed:
-                        if(!this.reloadPressed)
-                        {
-                            if(!this.rightClickPressed)
-                            {
+                        if (!this.reloadPressed) {
+                            if (!this.rightClickPressed) {
                                 this.manageAnimation(this._walk);
                             }
-                            else{
+                            else {
                                 this.manageAnimation(this._aim_walk);
                             }
                         }
@@ -252,7 +252,7 @@ export class FPSController {
                             }
                             break;
                         case 'r':
-                            if(this._currentAnim!=this._run)
+                            if(this._currentAnim!=this._run && !this.reloadPressed)
                             {
                                 this.reloadPressed=true;
                                 this._currentAnim=this._reload;
@@ -308,9 +308,9 @@ export class FPSController {
                             this.stopwalkSound();
                             break;
                         case 'r':
-                            this.reloadPressed=false;
-                            FPSController._ammo=FPSController._max_ammo;
+                            this.reloadPressed = false;
                             this.allUnpressed();
+                            this.reloadAmmo();
                             break;
                     }
                     break;
@@ -339,13 +339,17 @@ export class FPSController {
                     break;
                 case PointerEventTypes.POINTERUP:
                     if (pointerInfo.event.button === 2) {
-                        console.log("click droit up");
                     }
                     break;
             }
         })
     }
 
+    private async reloadAmmo()
+    {
+        await Tools.DelayAsync(1000);
+        FPSController._ammo = FPSController._max_ammo;
+    }
     public changeWeapon() {
         this.swap(this._weapon);
     }
@@ -414,12 +418,10 @@ export class FPSController {
     private fire() {
         var zombie = this._enemy;
         var origin = this._camera.position;
-        if(FPSController._ammo>0)
-        {
-            FPSController._ammo -=1;
+        if (FPSController._ammo > 0) {
+            FPSController._ammo -= 1;
+
             this._weaponSound.play(); //sound
-
-
             var forward = new Vector3(0, 0, 1);
             forward = this.vecToLocal(forward, this._camera);
 
@@ -434,31 +436,34 @@ export class FPSController {
 
             //animation
             //set animation
-            if(!this.rightClickPressed)
-            {
+            if (!this.rightClickPressed) {
                 this._fire.play(false);
             }
-            else{
+            else {
                 this._aim_shot.play(false);
                 this._animatePlayer();
             }
 
             for (let i = 0; i < this._zMeshes.length; i++) {
-                console.log(this._damages);
                 if (hit.pickedMesh.name == this._zMeshes[i]) {
-                    console.log(this._damages);
-                    this._zombie.getHit(this._damages);
+                    switch (this._zMeshes[i]) {
+                        case "skeletonZombie":
+                            this._boss.getHit(this._damage);
+                            break;
+                        case "parasiteZombie":
+                            this._mutant.getHit(this._damage);
+                            break;
+                        case "Ch10_primitive0" || "Ch10_primitive1":
+                            this._zombie.getHit(this._damage);
+                    }
                 }
             }
         }
-        else{
+        else {
             this.reload();
         }
-
     }
-
-    private reload()
-    {
+    private reload() {
         this._empty_ammo.play();
     }
 
@@ -497,9 +502,9 @@ export class FPSController {
         this._setUpAnimations();
         this._animatePlayer();
         this._cooldown_fire = 0.15;
-        this._damages = 25;
-        FPSController._ammo=30;
-        FPSController._max_ammo=30;
+        this._damage = 25;
+        FPSController._ammo = 30;
+        FPSController._max_ammo = 30;
 
         return {
             mesh: env as Mesh,
@@ -543,9 +548,9 @@ export class FPSController {
         this._cooldown_fire = 0.3;
         this._setUpAnimations();
         this._animatePlayer();
-        this._damages = 50;
-        FPSController._ammo=5;
-        FPSController._max_ammo=5;
+        this._damage = 50;
+        FPSController._ammo = 10;
+        FPSController._max_ammo = 10;
 
         return {
             mesh: env as Mesh,
@@ -589,9 +594,9 @@ export class FPSController {
         this._cooldown_fire = 0.2;
         this._setUpAnimations();
         this._animatePlayer();
-        this._damages = 15;
-        FPSController._ammo=50;
-        FPSController._max_ammo=50;
+        this._damage = 15;
+        FPSController._ammo = 50;
+        FPSController._max_ammo = 50;
 
         return {
             mesh: env as Mesh,
@@ -634,9 +639,9 @@ export class FPSController {
         this._cooldown_fire = 0.7;
         this._setUpAnimations();
         this._animatePlayer();
-        this._damages = 100;
-        FPSController._ammo=10;
-        FPSController._max_ammo=10;
+        this._damage = 100;
+        FPSController._ammo = 10;
+        FPSController._max_ammo = 10;
 
         return {
             mesh: env as Mesh,

@@ -15,30 +15,6 @@ export class PlayerHealth {
         this._player_Mesh=mesh;
         this._max_Health=maxHealth;
         PlayerHealth._current_Health=maxHealth;
-        //this.HealthBar();
-    }
-
-    /*protected update() {
-        this._scene.onReadyObservable.addOnce(() => {
-        setInterval(() => {
-            if(PlayerHealth._current_Health!=this._max_Health){
-                this.HealthBar();
-            }
-        }, 60);
-    })
-}*/
-
-    //public takeDamages(damages:int)
-    //{
-    //PlayerHealth._current_Health-=damages;
-    //}
-
-    public Die()
-    {
-        if(PlayerHealth._current_Health<=0)
-        {
-
-        }
     }
 
     public HealthBar()

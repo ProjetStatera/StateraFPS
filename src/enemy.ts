@@ -19,7 +19,7 @@ export class Enemy {
     public name:string;
     public currentHealth:float;
     public maxHealth:float;
-    protected _damages= 10;
+    public damage:float;
 
     // animation trackers
     protected _currentAnim: AnimationGroup = null;
@@ -37,6 +37,7 @@ export class Enemy {
 
     protected _ambiance:Sound;
     protected _ambiance2:Sound;
+
     
 
     constructor(scene: Scene, canvas: HTMLCanvasElement, difficulty, velocity: int, name: string) {
@@ -177,10 +178,11 @@ export class Enemy {
     }
 
     protected attack() {
+        
         if (!this.isDead && !this._attack.isPlaying)
-            PlayerHealth._current_Health-=this._damages;
             this._currentAnim = this._attack;
             this._animateZombie();
+            PlayerHealth._current_Health -= this.damage;
     }
 
     protected _animateZombie(): void {

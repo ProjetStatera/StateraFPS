@@ -14,6 +14,7 @@ export class Mutant extends Enemy {
         env.scaling = new Vector3(1.5, 1.5, -1.5);
         env.name = this.name;
         this.maxHealth = 130;
+        this.damage = 26;
         this.currentHealth = this.maxHealth;
         this.zombieMeshes = env;
         this._attack = this.scene.getAnimationGroupByName("Parasite_l_starkie.Mutant_Jump_Attack");

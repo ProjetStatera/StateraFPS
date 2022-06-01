@@ -14,7 +14,7 @@ import { UtilityLayerRenderer, Engine, int, KeyboardEventTypes, Tools, ArcRotate
 import { Round } from "./Round";
 
 enum State { START = 0, GAME = 1, LOSE = 2, CUTSCENE = 3 }
- 
+
 class App {
     // General Entire Application
     private _scene: Scene;
@@ -31,19 +31,20 @@ class App {
     private _ambianceMusic: Sound;
     private _dayAmbianceMusic: Sound;
     private _round: Round;
-    private _cooldown:int = 30000;
-    private _currentRound:int = 1;
+    private _cooldown: int = 30000;
+    private _currentRound: int = 1;
+    private _isdead: boolean;
 
     //all weapons
     private _fps: FPSController;
 
     //Zombies
-    private _enemies:Array<Enemy>;
+    private _enemies: Array<Enemy>;
     private _enemy: Enemy;
-    private _zombie:Zombie;
-    private _boss:Boss;
-    private _mutant:Mutant;
-    
+    private _zombie: Zombie;
+    private _boss: Boss;
+    private _mutant: Mutant;
+
     //Scene - related
     private _state: number = 0;
 
@@ -56,7 +57,6 @@ class App {
         var camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero(), this._scene);
         camera.attachControl(this._canvas, true);
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 1), this._scene); //white light
-
         this.main();
     }
 
@@ -199,6 +199,21 @@ class App {
         this._state = State.GAME;
     }
 
+    private update() {
+        this._scene.onReadyObservable.addOnce(() => {
+            setInterval(() => {
+                if (PlayerHealth._current_Health <= 0) {
+                    this._isdead = true;
+                    PlayerHealth._current_Health = 200;
+                    this.day();
+                }
+                else {
+                    clearInterval();
+                }
+            }, 60);
+        })
+    }
+
     /**
      * generate all meshes with glb map file
      */
@@ -208,18 +223,18 @@ class App {
         light1.range = 100;
         this._light1 = light1;
 
-        this._dayAmbianceMusic = new Sound("dayAmbianceMusic", "sounds/sunnyday.mp3", this._scene ,null, {
+        this._dayAmbianceMusic = new Sound("dayAmbianceMusic", "sounds/sunnyday.mp3", this._scene, null, {
             loop: true,
             autoplay: false,
             volume: 0.07
-          });
+        });
 
         //sound         
-        this._ambianceMusic = new Sound("ambianceMusic", "sounds/music.mp3", this._scene ,null, {
+        this._ambianceMusic = new Sound("ambianceMusic", "sounds/music.mp3", this._scene, null, {
             loop: true,
             autoplay: false,
             volume: 0.8
-          });
+        });
 
         // Sky material
         var skyboxMaterial = new SkyMaterial("skyMaterial", this._scene);
@@ -246,41 +261,40 @@ class App {
         })
     }
 
-    private createEnemies()
-    {
-        this._enemies = 
-            [ this._zombie = new Zombie(this._gameScene, this._canvas, this._difficulty, this._velocity,"zombie"),
-            this._mutant = new Mutant(this._gameScene, this._canvas, this._difficulty, this._velocity2,"mutant"),
-            this._boss = new Boss(this._gameScene, this._canvas, this._difficulty, this._velocity3,"boss"),
-    ]
-            
+    private createEnemies() {
+        this._enemies =
+            [this._zombie = new Zombie(this._gameScene, this._canvas, this._difficulty, this._velocity, "zombie"),
+            this._mutant = new Mutant(this._gameScene, this._canvas, this._difficulty, this._velocity2, "mutant"),
+            this._boss = new Boss(this._gameScene, this._canvas, this._difficulty, this._velocity3, "boss"),
+            ]
+
     }
 
-    private disableEnemies(){
-        for(var enemy of this._enemies)
-        {
+    private disableEnemies() {
+        for (var enemy of this._enemies) {
             enemy.zombieMeshes.setEnabled(false);
         }
     }
-    private enableEnemies(){
-        for(var enemy of this._enemies)
-        {
+    private enableEnemies() {
+        for (var enemy of this._enemies) {
             enemy.zombieMeshes.setEnabled(true);
         }
     }
 
-    private async day(){
+    public async day() {
+        if(!this._isdead){
+            this._currentRound += 1;
+        }
         this._round.day();
-        this._currentRound += 1;
-        if(this._currentRound == 6 || this._currentRound == 10 || this._currentRound == 15 )
-        {
+        if (this._currentRound == 6 || this._currentRound == 10 || this._currentRound == 15) {
             this._fps.changeWeapon();
         }
         this.disableEnemies();
+        this._isdead = false;this._currentRound += 1;
         await Tools.DelayAsync(10000);
         this.night();
     }
-    private async night(){
+    private async night() {
         this._round.night();
         this._zombie.currentHealth = this._zombie.maxHealth;
         this._mutant.currentHealth = this._mutant.maxHealth;
@@ -330,10 +344,10 @@ class App {
         this._engine.hideLoadingUI();
         //AFTER LOADING
         this._scene.attachControl();
-        this._scene.debugLayer.show();
         this.disableEnemies();
-        this._round = new Round(this._scene,this._canvas,this._light1,this._skyboxMaterial,this._ambianceMusic, this._dayAmbianceMusic);
+        this._round = new Round(this._scene, this._canvas, this._light1, this._skyboxMaterial, this._ambianceMusic, this._dayAmbianceMusic);
         this.day();
+        this.update();
         const guiGame = AdvancedDynamicTexture.CreateFullscreenUI("UI");
         guiGame.idealHeight = 50; //fit our fullscreen ui to this height
 
@@ -341,21 +355,21 @@ class App {
         imageRect.width = 1;
         imageRect.thickness = 0;
         guiGame.addControl(imageRect);
-        const crossHairImg = new Image("crossHairImg","/sprites/cross.png");
+        const crossHairImg = new Image("crossHairImg", "/sprites/cross.png");
         crossHairImg.width = "5%";
         crossHairImg.stretch = Image.STRETCH_UNIFORM;
         crossHairImg.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
         crossHairImg.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
         imageRect.addControl(crossHairImg);
 
-        const ammoImg = new Image ("ammoImg","/sprites/ammo.png");
+        const ammoImg = new Image("ammoImg", "/sprites/ammo.png");
         ammoImg.width = "5%";
         ammoImg.stretch = Image.STRETCH_UNIFORM;
         ammoImg.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
         ammoImg.paddingBottomInPixels = -45;
         imageRect.addControl(ammoImg);
 
-        const ammoNb = new TextBlock ("ammoNb",""+FPSController._ammo);
+        const ammoNb = new TextBlock("ammoNb", "" + FPSController._ammo);
         ammoNb.resizeToFit = true;
         ammoNb.fontFamily = "Calibri";
         ammoNb.fontSize = "3px";
@@ -367,12 +381,12 @@ class App {
         ammoNb.paddingLeftInPixels = 4;
         imageRect.addControl(ammoNb);
 
-        var hbImg = new Image ("healthbar","/sprites/healthbar.png");
-        var hbImgGrey = new Image ("healthbargrey" , "/sprites/healthbar.png");
+        var hbImg = new Image("healthbar", "/sprites/healthbar.png");
+        var hbImgGrey = new Image("healthbargrey", "/sprites/healthbar.png");
         var container = new Rectangle("container");
         container.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-       // container.paddingBottomInPixels = -10;
-        container.top="21%";
+        // container.paddingBottomInPixels = -10;
+        container.top = "21%";
         container.height = "10%";
         container.width = "10%";
         //container.top = "-4%";
@@ -382,7 +396,7 @@ class App {
         var container2 = new Rectangle("container2");
         container2.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
         //container2.paddingBottomInPixels = -10;
-        container2.top="35%";
+        container2.top = "35%";
         container2.height = "10%";
         container2.width = "10%";
         //.top = "-4%";
@@ -395,16 +409,15 @@ class App {
 
         var right = 0;
         var cRight = 180;
-        this._scene.onAfterRenderObservable.add(function() {
+        this._scene.onAfterRenderObservable.add(function () {
             hbImg.paddingRight = right;
             container.paddingRight = cRight;
             hbImg.isDirty;
             container.isDirty;
-            right = PlayerHealth._current_Health-200;
-            cRight = 180+(PlayerHealth._current_Health*(PlayerHealth._current_Health-200))/(-PlayerHealth._current_Health);
-            ammoNb.text ="";
-            ammoNb.text = "   " +FPSController._ammo.toString()+ "/"+FPSController._max_ammo;
-
+            right = PlayerHealth._current_Health - 200;
+            cRight = 180 + (PlayerHealth._current_Health * (PlayerHealth._current_Health - 200)) / (-PlayerHealth._current_Health);
+            ammoNb.text = "";
+            ammoNb.text = "   " + FPSController._ammo.toString() + "/" + FPSController._max_ammo;
         })
     }
 
