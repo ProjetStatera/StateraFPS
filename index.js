@@ -8,7 +8,7 @@ app.get("/", function(req, res) {
 });
 
 // necessary for heroku, as heroku will position the PORT environment variable
-let port = process.env.PORT || 8000;
+let port = process.env.PORT || 3000;
 
 app.listen(port, () => {
     console.log("Server is running on port " + port);
