@@ -559,7 +559,7 @@ export class FPSController {
     }
 
     private async createPistol(): Promise<any> {
-        const result = await SceneLoader.ImportMeshAsync("", "models", "pistol.glb", this._scene);
+        const result = await SceneLoader.ImportMeshAsync("", "", "pistol.glb", this._scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
