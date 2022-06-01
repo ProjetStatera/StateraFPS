@@ -73,21 +73,4 @@ Build typescript and open web page via
 
 
 
-### Controls:
-
-Z : moving forward  
-S : move back  
-D : right  
-Q : left  
-R : Reload  
-F : Turn on/off flashlight  
-  
-Shift : Run  
-Control : Sprint  
-  
-Left/right mouse click : Fire  
-  
-N : Night/Day (temporary)  
-
-
 
