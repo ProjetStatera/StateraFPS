@@ -13,7 +13,7 @@ export class FPSController {
     private _zombie: Zombie;
     private _mutant: Mutant;
     private _boss: Boss;
-    private _damage: float;
+    private _damages: float;
     private _lastPost: Vector3;
     private _zMeshes: Array<String>;
 
@@ -25,7 +25,6 @@ export class FPSController {
     private _cooldown_time: int;
     public static _ammo: int;
     public static _max_ammo: int;
-    private _damages: int;
 
     //sounds
     private _weaponSound: Sound;
@@ -498,7 +497,7 @@ export class FPSController {
         this._setUpAnimations();
         this._animatePlayer();
         this._cooldown_fire = 0.15;
-        this._damage = 25;
+        this._damages = 25;
         FPSController._ammo=30;
         FPSController._max_ammo=30;
 
@@ -544,7 +543,7 @@ export class FPSController {
         this._cooldown_fire = 0.3;
         this._setUpAnimations();
         this._animatePlayer();
-        this._damage = 50;
+        this._damages = 50;
         FPSController._ammo=5;
         FPSController._max_ammo=5;
 
@@ -590,7 +589,7 @@ export class FPSController {
         this._cooldown_fire = 0.2;
         this._setUpAnimations();
         this._animatePlayer();
-        this._damage = 15;
+        this._damages = 15;
         FPSController._ammo=50;
         FPSController._max_ammo=50;
 
@@ -635,7 +634,7 @@ export class FPSController {
         this._cooldown_fire = 0.7;
         this._setUpAnimations();
         this._animatePlayer();
-        this._damage = 100;
+        this._damages = 100;
         FPSController._ammo=10;
         FPSController._max_ammo=10;
 
