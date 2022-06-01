@@ -15,7 +15,7 @@ export class PlayerHealth {
         this._player_Mesh=mesh;
         this._max_Health=maxHealth;
         PlayerHealth._current_Health=maxHealth;
-        this.HealthBar();
+        //this.HealthBar();
     }
 
     /*protected update() {
@@ -53,33 +53,46 @@ export class PlayerHealth {
         
         var dynamicTexture = new DynamicTexture("dt1", 512, this._scene, true);
 	    dynamicTexture.hasAlpha = true;
+        var dynamicTextureAmmo = new DynamicTexture("dt2", 512, this._scene, true);
+	    dynamicTexture.hasAlpha = true;
 
         var healthBarTextMaterial = new StandardMaterial("hb3mat", this._scene);
 	    healthBarTextMaterial.diffuseTexture = dynamicTexture;
 	    healthBarTextMaterial.backFaceCulling = false;
 	    healthBarTextMaterial.diffuseColor = Color3.Black();
 
-        var healthBar = MeshBuilder.CreatePlane("hb1", {width: 1.5, height:.15}, this._scene);		
-	    var healthBarContainer = MeshBuilder.CreatePlane("hb2", { width: 1.5, height: .15}, this._scene);
-	    var healthBarText = MeshBuilder.CreatePlane("hb3", { width: .2, height: .15}, this._scene);
-	    healthBarText.material = healthBarMaterial;
+        var ammoTextMaterial = new StandardMaterial("ammo4mat", this._scene);
+	    ammoTextMaterial.diffuseTexture = dynamicTextureAmmo;
+	    ammoTextMaterial.backFaceCulling = false;
+	    ammoTextMaterial.diffuseColor = Color3.White();
 
-        healthBar.renderingGroupId = 2;
-	    healthBarText.renderingGroupId = 2;
-	    healthBarContainer.renderingGroupId = 2;
+        var healthBar = MeshBuilder.CreatePlane("hb1", {width: .3, height: .7}, this._scene);		
+	    var healthBarContainer = MeshBuilder.CreatePlane("hb2", { width: .3, height: .7}, this._scene);
+	    var healthBarText = MeshBuilder.CreatePlane("hb3", { width: .1, height: .10}, this._scene);
+        var ammoText = MeshBuilder.CreatePlane("ammo4",{width : .1, height : .10}, this._scene);
+	    healthBarText.material = healthBarMaterial;
+        ammoText.material = ammoTextMaterial;
+
+        healthBar.renderingGroupId = 3;
+	    healthBarText.renderingGroupId = 3;
+        ammoText.renderingGroupId = 3;
+	    healthBarContainer.renderingGroupId = 3;
 
 
         healthBar.position = new Vector3(0, 0, .001);
-        healthBarContainer.position = new Vector3(0, 2.340, -2);     
-        healthBarText.position = new Vector3(0, -0.03, 0.002);
+        healthBarContainer.position = new Vector3(-1.3, 2.2, -2);     
+        healthBarText.position = new Vector3(0, -0.02, 0.002);
+        ammoText.position = new Vector3(.1,-0.2,0.002);
 
         healthBar.parent = healthBarContainer;
         healthBarContainer.parent = this._player_Mesh;
         healthBarText.parent = healthBarContainer;
+        ammoText.parent = healthBarContainer;
         
 	    healthBar.material = healthBarMaterial;
 	    healthBarContainer.material = healthBarContainerMaterial;
 	    healthBarText.material = healthBarTextMaterial;
+        ammoText.material = ammoTextMaterial;
         
         var currenthealth = PlayerHealth._current_Health;
         var maxhealth = this._max_Health;
@@ -104,14 +117,23 @@ export class PlayerHealth {
                 var size = dynamicTexture.getSize();
                 var text = PlayerHealth._current_Health/2 + "%";
                 textureContent.clearRect(0,0, size.width, size.height);
-                textureContent.font = "bold 120px Calibri";
+                textureContent.font = "bold 150px Calibri";
                 var textSize = textureContent.measureText(text);
                 textureContent.fillStyle = "white";
                 textureContent.fillText(text,(size.width - textSize.width) / 2,(size.height - 120) / 2);
                 dynamicTexture.update();
             }
+
+            var textureContentAmmo = dynamicTextureAmmo.getContext();
+            var sizeAmmo = dynamicTextureAmmo.getSize();
+            var textAmmo = FPSController._ammo + "";
+            textureContentAmmo.clearRect(0,0,sizeAmmo.width,sizeAmmo.height);
+            textureContentAmmo.font = "bold 120px Calibri";
+            var textSizeAmmo = textureContentAmmo.measureText(textAmmo);
+            textureContentAmmo.fillStyle = "white";
+            textureContentAmmo.fillText(textAmmo,(sizeAmmo.width - textSizeAmmo.width) / 2,(sizeAmmo.height - 120) / 2);
+            dynamicTextureAmmo.update();
         })
     }
-    
 
 }
