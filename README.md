@@ -60,6 +60,8 @@ and for the Keys Guide, you can check on ("Touches_explication.pdf").
 Install dependencies via:
   ```sh
   npm install
+  npm install --save @babylonjs/core @babylonjs/materials
+ 
   ```
 Build 
   ```sh
