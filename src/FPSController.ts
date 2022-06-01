@@ -605,7 +605,7 @@ export class FPSController {
     }
 
     private async createSniper(): Promise<any> {
-        const result = await SceneLoader.ImportMeshAsync("", "../public/models", "sniper.glb", this._scene);
+        const result = await SceneLoader.ImportMeshAsync("", "/models", "sniper.glb", this._scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
