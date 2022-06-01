@@ -18,7 +18,7 @@ export class Round{
         this._dayAmbianceMusic = dayAmbianceMusic;
     }
     
-
+    //day settings
     public async day(){
             this._ambianceMusic.stop();
             if(!this._dayAmbianceMusic.isPlaying)
@@ -31,6 +31,7 @@ export class Round{
             this._skyboxMaterial.sunPosition = new Vector3(0, 100, 0);
     }
  
+    //night settings
     public async night(){
         this._dayAmbianceMusic.stop();
         if(!this._ambianceMusic.isPlaying)

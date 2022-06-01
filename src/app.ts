@@ -111,6 +111,7 @@ class App {
         const startbg = new Image("startbg", "/sprites/start.jpg");
         imageRect.addControl(startbg);
 
+        //statera title
         const title = new TextBlock("title", "Statera");
         title.resizeToFit = true;
         title.fontFamily = "Ceviche One";
@@ -199,6 +200,9 @@ class App {
         this._state = State.GAME;
     }
 
+    /**
+     * launched every 60ms 
+     */
     private update() {
         this._scene.onReadyObservable.addOnce(() => {
             setInterval(() => {
@@ -261,6 +265,7 @@ class App {
         })
     }
 
+    // the 3 enemies of each wave
     private createEnemies() {
         this._enemies =
             [this._zombie = new Zombie(this._gameScene, this._canvas, this._difficulty, this._velocity, "zombie"),
@@ -281,19 +286,24 @@ class App {
         }
     }
 
+    // launch the day and its functions, checks..
     public async day() {
         if(!this._isdead){
-            this._currentRound += 1;
+            this._currentRound += 1;    
         }
         this._round.day();
-        if (this._currentRound == 6 || this._currentRound == 10 || this._currentRound == 15) {
+        console.log(this._currentRound);
+        if (this._currentRound == 3 || this._currentRound == 4 || this._currentRound == 7) {
             this._fps.changeWeapon();
+            PlayerHealth._current_Health = 200;
         }
         this.disableEnemies();
-        this._isdead = false;this._currentRound += 1;
+        this._isdead = false;
         await Tools.DelayAsync(10000);
         this.night();
     }
+
+    // launch the night and its functions, implementations...
     private async night() {
         this._round.night();
         this._zombie.currentHealth = this._zombie.maxHealth;
@@ -304,7 +314,7 @@ class App {
         this._boss.changePosition();
         this.enableEnemies();
         await Tools.DelayAsync(this._cooldown);
-        this._cooldown += 30000;
+        this._cooldown += 10;
         this.day();
     }
 
@@ -351,10 +361,13 @@ class App {
         const guiGame = AdvancedDynamicTexture.CreateFullscreenUI("UI");
         guiGame.idealHeight = 50; //fit our fullscreen ui to this height
 
+        //Rect that will contains all the gui bellow
         const imageRect = new Rectangle("titleContainer");
         imageRect.width = 1;
         imageRect.thickness = 0;
         guiGame.addControl(imageRect);
+
+        //Croissair
         const crossHairImg = new Image("crossHairImg", "/sprites/cross.png");
         crossHairImg.width = "5%";
         crossHairImg.stretch = Image.STRETCH_UNIFORM;
@@ -362,6 +375,7 @@ class App {
         crossHairImg.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
         imageRect.addControl(crossHairImg);
 
+        //Ammo
         const ammoImg = new Image("ammoImg", "/sprites/ammo.png");
         ammoImg.width = "5%";
         ammoImg.stretch = Image.STRETCH_UNIFORM;
@@ -369,6 +383,7 @@ class App {
         ammoImg.paddingBottomInPixels = -45;
         imageRect.addControl(ammoImg);
 
+        //Ammo amount / Ammo max
         const ammoNb = new TextBlock("ammoNb", "" + FPSController._ammo);
         ammoNb.resizeToFit = true;
         ammoNb.fontFamily = "Calibri";
@@ -380,7 +395,7 @@ class App {
         ammoNb.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
         ammoNb.paddingLeftInPixels = 4;
         imageRect.addControl(ammoNb);
-
+        //healthBar Management
         var hbImg = new Image("healthbar", "/sprites/healthbar.png");
         var hbImgGrey = new Image("healthbargrey", "/sprites/healthbar.png");
         var container = new Rectangle("container");
@@ -416,6 +431,7 @@ class App {
             container.isDirty;
             right = PlayerHealth._current_Health - 200;
             cRight = 180 + (PlayerHealth._current_Health * (PlayerHealth._current_Health - 200)) / (-PlayerHealth._current_Health);
+            //above is the update of the healthBar, bellow the update of the ammo amount
             ammoNb.text = "";
             ammoNb.text = "   " + FPSController._ammo.toString() + "/" + FPSController._max_ammo;
         })
@@ -486,7 +502,6 @@ class App {
             if (this._transition) {
                 fadeLevel -= .05;
                 if (fadeLevel <= 0) {
-                    // this._goToCutScene();
                     this.goToStart();
                     this._transition = false;
                 }
@@ -498,7 +513,6 @@ class App {
             //todo: add fade transition & selection sfx
             scene.detachControl();
             guiMenu.dispose();
-            // this._goToStart();
             this._transition = true;
         });
 

@@ -16,6 +16,8 @@ export class Zombie extends Enemy {
     this.damage = 14;
     this.currentHealth = this.maxHealth;
     this.zombieMeshes = env;
+
+    //Animations
     this._attack = this.scene.getAnimationGroupByName("Ch10_nonPBR.Zombie_Punching");
     this._fallingBack = this.scene.getAnimationGroupByName("Ch10_nonPBR.Zombie_Death");
     this._hit = this.scene.getAnimationGroupByName("Ch10_nonPBR.Zombie_Reaction_Hit_(1)");

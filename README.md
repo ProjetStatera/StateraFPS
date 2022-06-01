@@ -25,7 +25,7 @@ What about the game and how is it played ?
 
 It's a FPS survival in which u must have a good aim to survive,
 in fact, you have infinite ammo and the rounds goes as far as you
-can reach. you first start with a pistol the 5 first rounds, then, we'll you'll discover it by youself ! I don't wanna spoil you :)
+can reach. you first start with a pistol the first rounds, and then, we'll you'll discover it by youself ! I don't wanna spoil you :)
 But a really important advise is to start the game in easy mode,
 because once the monsters reach you, you must spam S to escape, but
 that's considering you're lucky enough to survive.

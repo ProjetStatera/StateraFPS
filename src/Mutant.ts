@@ -16,6 +16,8 @@ export class Mutant extends Enemy {
         this.damage = 26;
         this.currentHealth = this.maxHealth;
         this.zombieMeshes = env;
+
+        //Animations
         this._attack = this.scene.getAnimationGroupByName("Parasite_l_starkie.Mutant_Jump_Attack");
         this._fallingBack = this.scene.getAnimationGroupByName("Parasite_l_starkie.Falling_Back_Death");
         this._hit = this.scene.getAnimationGroupByName("Parasite_l_starkie.Zombie_Reaction_Hit");

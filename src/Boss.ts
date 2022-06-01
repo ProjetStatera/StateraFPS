@@ -5,6 +5,7 @@ import { Enemy } from "./Enemy";
 
 export class Boss extends Enemy {
 
+    
     public override async CreateEnemy(position: Vector3): Promise<any> {
         const result = await SceneLoader.ImportMeshAsync("", "./models/", "boss.glb", this.scene);
         let env = result.meshes[0];
@@ -16,6 +17,8 @@ export class Boss extends Enemy {
         this.damage = 40;
         this.currentHealth = this.maxHealth;
         this.zombieMeshes = env;
+
+        //Animations
         this._attack = this.scene.getAnimationGroupByName("Skeletonzombie_t_avelange.Mutant_Jump_Attack_1");
         this._fallingBack = this.scene.getAnimationGroupByName("Skeletonzombie_t_avelange.Falling_Back_Death_1");
         this._hit = this.scene.getAnimationGroupByName("Skeletonzombie_t_avelange.Zombie_Reaction_Hit_1");

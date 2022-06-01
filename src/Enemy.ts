@@ -8,6 +8,7 @@ export class Enemy {
     protected velocity: float;
     protected isDead: Boolean;
     protected isAttacking:Boolean;
+    protected _isScreaming:Boolean;
 
    
     public static hitPlayer:boolean;
@@ -36,9 +37,11 @@ export class Enemy {
 
     protected _ambiance:Sound;
     protected _ambiance2:Sound;
+    protected _hurtSound:Sound;
+    protected _screamSound:Sound;
 
     
-
+    
     constructor(scene: Scene, canvas: HTMLCanvasElement, difficulty, velocity: int, name: string) {
         this.scene = scene;
         this._canvas = canvas;
@@ -57,6 +60,8 @@ export class Enemy {
             autoplay: false,
             volume: 0.2
           });
+        this._hurtSound = new Sound("hurtsound","sounds/hurt.mp3",this.scene);
+        this._screamSound = new Sound("screamsound","sounds/scream.mp3",this.scene);
     }
 
     protected async spawner(difficulty: int): Promise<any> {
@@ -93,6 +98,7 @@ export class Enemy {
     })
 }
 
+    //enemy taking damages and anims
     public async getHit(damage: float) {
         var velocity2 = this.velocity;
 
@@ -108,6 +114,7 @@ export class Enemy {
         this.velocity = velocity2;
     }
 
+    //enemy's death
     public async die() {
         if (!this.isDead) {
             this.isDead = true;
@@ -164,26 +171,37 @@ export class Enemy {
         }
     }
 
+    //enemy's ability to stun
     protected async stunPlayer()
     {
         Enemy.hitPlayer = true;
         await Tools.DelayAsync(4000);
         this._currentAnim = this._scream;
+        if(!this._isScreaming)
+        {
+            this._screamSound.play();
+            this._isScreaming=true;
+        }
         this._animateZombie();
         Enemy.hitPlayer = false;
         await Tools.DelayAsync(10000);
+        this._isScreaming=false;
         this.isAttacking = false;
         await Tools.DelayAsync(1000);
     }
 
+
+    //enemy's attack and the dmgs done
     protected attack() {
         
         if (!this.isDead && !this._attack.isPlaying)
             this._currentAnim = this._attack;
             this._animateZombie();
             PlayerHealth._current_Health -= this.damage;
+            this._hurtSound.play();
     }
 
+    //Zombie Animator
     protected _animateZombie(): void {
         if (this._currentAnim != null && this._prevAnim !== this._currentAnim) {
             this._prevAnim.stop();

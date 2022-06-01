@@ -35,6 +35,7 @@ export class FPSController {
     private _runSound: Sound;
     private _hurt: Sound;
     private _empty_ammo: Sound;
+    private _reloadSound: Sound;
 
     //headLight
     private _light: SpotLight;
@@ -109,6 +110,7 @@ export class FPSController {
         });
         this._empty_ammo = new Sound("emptyammo", "sounds/emptyammo.mp3", this._scene);
         this._playerHealth = new PlayerHealth(this._scene,this._weapon,200);
+        this._reloadSound = new Sound("pistolsoundreload","sounds/pistol-reload.mp3",this._scene);
     }
     /**
      * launched every 60ms 
@@ -122,6 +124,7 @@ export class FPSController {
                 else {
                     this._cooldown_time = 0;
                 }
+                //Animations change depending on the current speed
                 switch (this._camera.speed) {
                     case 0:
                         if (!this.reloadPressed) {
@@ -200,6 +203,7 @@ export class FPSController {
 
     private i: int;
 
+    //Weapon upgrades
     private swap(lastWeapon) {
         lastWeapon.dispose();
         switch (this.i) {
@@ -217,6 +221,7 @@ export class FPSController {
         }
     }
 
+    //Key Events
     private keyboardInput(): void {
         this._scene.onKeyboardObservable.add((kbInfo) => {
             switch (kbInfo.type) {
@@ -257,6 +262,7 @@ export class FPSController {
                                 this.reloadPressed=true;
                                 this._currentAnim=this._reload;
                                 this._animatePlayer();
+                                this._reloadSound.play();
                             }
                             break;
                         case 'f':
@@ -316,6 +322,7 @@ export class FPSController {
                     break;
             }
         })
+        //Mouse Events
         this._scene.onPointerObservable.add((pointerInfo) => {
             switch (pointerInfo.type) {
                 case PointerEventTypes.POINTERDOWN:
@@ -328,12 +335,9 @@ export class FPSController {
                     else if (pointerInfo.event.button == 2) {
                         if (!this.rightClickPressed) {
                             this.rightClickPressed = true;
-                            /*this._lastPost = this._weapon.position;
-                            this._weapon.position = new Vector3(0, -6.72, 1);
-                        }*/}
+                        }
                         else {
                             this.rightClickPressed = false;
-                            //this._weapon.position = this._lastPost;
                         }
                     }
                     break;
@@ -365,6 +369,7 @@ export class FPSController {
             this._walkSound.stop();
     }
 
+    //Anims Check to return to Idle
     private allUnpressed() {
         if (!this.zPressed && !this.qPressed && !this.sPressed && !this.dPressed) {
             this.walk(0);
@@ -414,7 +419,7 @@ export class FPSController {
         return v;
     }
 
-    //left and right click to set fire 
+    //left click to fire, right click to aim, ammo managed bellow too
     private fire() {
         var zombie = this._enemy;
         var origin = this._camera.position;
@@ -463,10 +468,12 @@ export class FPSController {
             this.reload();
         }
     }
+
     private reload() {
         this._empty_ammo.play();
     }
 
+    //Scar and its variables/stats
     private async createScar(): Promise<any> {
         const result = await SceneLoader.ImportMeshAsync("", "./models/", "scar.glb", this._scene);
 
@@ -483,7 +490,7 @@ export class FPSController {
 
         //audio effect 
         this._weaponSound = new Sound("scarsound", "sounds/scarshot.mp3", this._scene);
-
+        this._reloadSound = new Sound("scarsoundreload","sounds/scar-reload.mp3",this._scene);
         //animations
         this._end = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Hide");
         this._fire = this._scene.getAnimationGroupByName("Hands_Automatic_rifle.Singl_Shot");
@@ -501,6 +508,7 @@ export class FPSController {
         this._aim_walk.loopAnimation = true;
         this._setUpAnimations();
         this._animatePlayer();
+        //shooting part
         this._cooldown_fire = 0.15;
         this._damage = 25;
         FPSController._ammo = 30;
@@ -512,6 +520,7 @@ export class FPSController {
         }
     }
 
+    //Shotgun and its variables/stats
     private async createShotgun(): Promise<any> {
         const result = await SceneLoader.ImportMeshAsync("", "./models/", "shotgun.glb", this._scene);
 
@@ -528,6 +537,7 @@ export class FPSController {
 
         //audio effect 
         this._weaponSound = new Sound("shotgunsound", "sounds/shotgun.mp3", this._scene);
+        this._reloadSound = new Sound("shotgunsoundreload","sounds/shotgun-reload.mp3",this._scene);
 
         //animations
         this._end = this._scene.getAnimationGroupByName("Hands_Shotgun.Hide");
@@ -545,9 +555,12 @@ export class FPSController {
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
         this._aim_walk.loopAnimation = true;
-        this._cooldown_fire = 0.3;
         this._setUpAnimations();
         this._animatePlayer();
+
+
+        //shooting part
+        this._cooldown_fire = 0.3;
         this._damage = 50;
         FPSController._ammo = 10;
         FPSController._max_ammo = 10;
@@ -558,6 +571,7 @@ export class FPSController {
         }
     }
 
+    //Pistol and its variables/stats
     private async createPistol(): Promise<any> {
         const result = await SceneLoader.ImportMeshAsync("", "./models/", "pistol.glb", this._scene);
 
@@ -574,6 +588,7 @@ export class FPSController {
 
         //audio effect 
         this._weaponSound = new Sound("pistolsound", "sounds/pistol.mp3", this._scene);
+        this._reloadSound = new Sound("pistolsoundreload","sounds/pistol-reload.mp3",this._scene);
 
         //animations
         this._end = this._scene.getAnimationGroupByName("Hands_Gun02.Hide");
@@ -591,9 +606,11 @@ export class FPSController {
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
         this._aim_walk.loopAnimation = true;
-        this._cooldown_fire = 0.2;
         this._setUpAnimations();
         this._animatePlayer();
+
+        //shooting part
+        this._cooldown_fire = 0.2;
         this._damage = 15;
         FPSController._ammo = 50;
         FPSController._max_ammo = 50;
@@ -604,6 +621,8 @@ export class FPSController {
         }
     }
 
+
+    //Sniper and its variables/stats
     private async createSniper(): Promise<any> {
         const result = await SceneLoader.ImportMeshAsync("", "./models/", "sniper.glb", this._scene);
 
@@ -620,6 +639,7 @@ export class FPSController {
 
         //audio effect 
         this._weaponSound = new Sound("snipersound", "sounds/snipershot.mp3", this._scene);
+        this._reloadSound = new Sound("snipersoundreload","sounds/sniper-reload.mp3",this._scene);
 
         //animations
         this._end = this._scene.getAnimationGroupByName("Hands_Sniper_Rifle.Hide");
@@ -636,9 +656,11 @@ export class FPSController {
         this._idle.loopAnimation = true;
         this._walk.loopAnimation = true;
         this._aim_walk.loopAnimation = true;
-        this._cooldown_fire = 0.7;
         this._setUpAnimations();
         this._animatePlayer();
+
+        //shooting part
+        this._cooldown_fire = 0.7;
         this._damage = 100;
         FPSController._ammo = 10;
         FPSController._max_ammo = 10;
@@ -657,6 +679,7 @@ export class FPSController {
         this._prevAnim = this._end;
     }
 
+    //Player animator
     private _animatePlayer(): void {
         if (this._currentAnim != null && this._prevAnim !== this._currentAnim) {
             this._prevAnim.stop();
