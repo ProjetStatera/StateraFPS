@@ -5,6 +5,7 @@ import "@babylonjs/loaders";
 import { SkyMaterial } from "@babylonjs/materials";
 import { AdvancedDynamicTexture, StackPanel, Button, TextBlock, Rectangle, Control, Image } from "@babylonjs/gui";
 import { FPSController } from "./FPSController";
+import { PlayerHealth } from "./PlayerHealth";
 import { Enemy } from "./Enemy";
 import { Mutant } from "./Mutant";
 import { Boss } from "./Boss";
@@ -333,7 +334,78 @@ class App {
         this.disableEnemies();
         this._round = new Round(this._scene,this._canvas,this._light1,this._skyboxMaterial,this._ambianceMusic, this._dayAmbianceMusic);
         this.day();
-        this.crosshair();
+        const guiGame = AdvancedDynamicTexture.CreateFullscreenUI("UI");
+        guiGame.idealHeight = 50; //fit our fullscreen ui to this height
+
+        const imageRect = new Rectangle("titleContainer");
+        imageRect.width = 1;
+        imageRect.thickness = 0;
+        guiGame.addControl(imageRect);
+        const crossHairImg = new Image("crossHairImg","/sprites/cross.png");
+        crossHairImg.width = "5%";
+        crossHairImg.stretch = Image.STRETCH_UNIFORM;
+        crossHairImg.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+        crossHairImg.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+        imageRect.addControl(crossHairImg);
+
+        const ammoImg = new Image ("ammoImg","/sprites/ammo.png");
+        ammoImg.width = "5%";
+        ammoImg.stretch = Image.STRETCH_UNIFORM;
+        ammoImg.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+        ammoImg.paddingBottomInPixels = -45;
+        imageRect.addControl(ammoImg);
+
+        const ammoNb = new TextBlock ("ammoNb",""+FPSController._ammo);
+        ammoNb.resizeToFit = true;
+        ammoNb.fontFamily = "Calibri";
+        ammoNb.fontSize = "3px";
+        ammoNb.color = "white";
+        ammoNb.resizeToFit = true;
+        ammoNb.width = 0.8;
+        ammoNb.paddingBottomInPixels = -45;
+        ammoNb.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+        ammoNb.paddingLeftInPixels = 4;
+        imageRect.addControl(ammoNb);
+
+        var hbImg = new Image ("healthbar","/sprites/healthbar.png");
+        var hbImgGrey = new Image ("healthbargrey" , "/sprites/healthbar.png");
+        var container = new Rectangle("container");
+        container.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+       // container.paddingBottomInPixels = -10;
+        container.top="21%";
+        container.height = "10%";
+        container.width = "10%";
+        //container.top = "-4%";
+        container.thickness = 0;
+        container.alpha = 0.2;
+        container.addControl(hbImgGrey)
+        var container2 = new Rectangle("container2");
+        container2.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+        //container2.paddingBottomInPixels = -10;
+        container2.top="35%";
+        container2.height = "10%";
+        container2.width = "10%";
+        //.top = "-4%";
+        container2.thickness = 0;
+        container2.background = "";
+        container2.addControl(hbImg);
+
+        guiGame.addControl(container);
+        guiGame.addControl(container2);
+
+        var right = 0;
+        var cRight = 180;
+        this._scene.onAfterRenderObservable.add(function() {
+            hbImg.paddingRight = right;
+            container.paddingRight = cRight;
+            hbImg.isDirty;
+            container.isDirty;
+            right = PlayerHealth._current_Health-200;
+            cRight = 180+(PlayerHealth._current_Health*(PlayerHealth._current_Health-200))/(-PlayerHealth._current_Health);
+            ammoNb.text ="";
+            ammoNb.text = "   " +FPSController._ammo.toString()+ "/"+FPSController._max_ammo;
+
+        })
     }
 
     /**
@@ -453,11 +525,6 @@ class App {
         document.body.appendChild(this._canvas);
 
         return this._canvas;
-    }
-
-    private crosshair()
-    {
-        let img = new Image("crosshair", "/sprites/crosshair.png" )
     }
 }
 new App();
