@@ -239,7 +239,7 @@ class App {
 
         // Sky material
         var skyboxMaterial = new SkyMaterial("skyMaterial", this._scene);
-        skyboxMaterial.backFaceCulling = false;
+        //skyboxMaterial.backFaceCulling = false;
 
         // Sky mesh (box)
         var skybox = Mesh.CreateBox("skyBox", 1000.0, this._scene);
