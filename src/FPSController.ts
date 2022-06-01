@@ -468,7 +468,7 @@ export class FPSController {
     }
 
     private async createScar(): Promise<any> {
-        const result = await SceneLoader.ImportMeshAsync("", "./models/", "scar.glb", this._scene);
+        const result = await SceneLoader.ImportMeshAsync("", "../public/models", "scar.glb", this._scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
@@ -513,7 +513,7 @@ export class FPSController {
     }
 
     private async createShotgun(): Promise<any> {
-        const result = await SceneLoader.ImportMeshAsync("", "./models/", "shotgun.glb", this._scene);
+        const result = await SceneLoader.ImportMeshAsync("", "../public/models", "shotgun.glb", this._scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
@@ -559,7 +559,7 @@ export class FPSController {
     }
 
     private async createPistol(): Promise<any> {
-        const result = await SceneLoader.ImportMeshAsync("", "./models/", "pistol.glb", this._scene);
+        const result = await SceneLoader.ImportMeshAsync("", "../public/models", "pistol.glb", this._scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
@@ -605,7 +605,7 @@ export class FPSController {
     }
 
     private async createSniper(): Promise<any> {
-        const result = await SceneLoader.ImportMeshAsync("", "./models/", "sniper.glb", this._scene);
+        const result = await SceneLoader.ImportMeshAsync("", "../public/models", "sniper.glb", this._scene);
 
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
