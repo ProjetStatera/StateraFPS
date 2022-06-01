@@ -29,6 +29,7 @@
   "dependencies": {
     "@babylonjs/loaders": "^5.8.2",
     "@babylonjs/viewer": "^5.8.2",
-    "babylonjs": "^5.8.2"
+    "babylonjs": "^5.8.2",
+    "express": "^4.18.1"
   }
 }
