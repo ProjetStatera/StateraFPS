@@ -4,7 +4,7 @@ let app = express();
 app.use("/", express.static(__dirname));
 
 app.get("/", function(req, res) {
-    res.sendFile("index.html");
+    res.sendFile(__dirname + '/dist/index.html');
 });
 
 // necessary for heroku, as heroku will position the PORT environment variable

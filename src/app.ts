@@ -210,6 +210,7 @@ class App {
                 else {
                     clearInterval();
                 }
+                console.log(this._currentRound);
             }, 60);
         })
     }
@@ -286,12 +287,12 @@ class App {
             this._currentRound += 1;
         }
         this._round.day();
-        if (this._currentRound == 6 || this._currentRound == 10 || this._currentRound == 15) {
+        if (this._currentRound == 2 || this._currentRound == 3 || this._currentRound == 4) {
             this._fps.changeWeapon();
         }
         this.disableEnemies();
-        this._isdead = false;this._currentRound += 1;
-        await Tools.DelayAsync(10000);
+        this._isdead = false;
+        await Tools.DelayAsync(60000);
         this.night();
     }
     private async night() {
@@ -346,7 +347,7 @@ class App {
         this._scene.attachControl();
         this.disableEnemies();
         this._round = new Round(this._scene, this._canvas, this._light1, this._skyboxMaterial, this._ambianceMusic, this._dayAmbianceMusic);
-        this.day();
+        this._round.day();
         this.update();
         const guiGame = AdvancedDynamicTexture.CreateFullscreenUI("UI");
         guiGame.idealHeight = 50; //fit our fullscreen ui to this height
