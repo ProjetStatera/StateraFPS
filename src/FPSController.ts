@@ -39,6 +39,7 @@ export class FPSController {
 
     //headLight
     private _light: SpotLight;
+    private _gun_Flash: SpotLight;
 
     // animation trackers
     private _currentAnim: AnimationGroup = null;
@@ -88,6 +89,7 @@ export class FPSController {
         this.createController();
         this.keyboardInput();
         this.setupFlashlight();
+        this.setUpGunMuzzleFlash();
         this.setupAllMeshes();
         this.update();
         this.i = 0;
@@ -419,13 +421,26 @@ export class FPSController {
         return v;
     }
 
+    private setUpGunMuzzleFlash()
+    {
+        this._gun_Flash = new SpotLight("spotLight", new Vector3(0, 1, 0), new Vector3(0, 0, 1), 2 / 3, 2, this._scene);
+        this._gun_Flash.parent = this._camera;
+    }
+
+    private async gunMuzzleFlash()
+    {        
+        this._gun_Flash.intensity = 20000;
+        await Tools.DelayAsync(50);
+        this._gun_Flash.intensity=0;
+    }
+
     //left click to fire, right click to aim, ammo managed bellow too
     private fire() {
         var zombie = this._enemy;
         var origin = this._camera.position;
         if (FPSController._ammo > 0) {
             FPSController._ammo -= 1;
-
+            this.gunMuzzleFlash();
             this._weaponSound.play(); //sound
             var forward = new Vector3(0, 0, 1);
             forward = this.vecToLocal(forward, this._camera);

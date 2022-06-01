@@ -299,7 +299,7 @@ class App {
         }
         this.disableEnemies();
         this._isdead = false;
-        await Tools.DelayAsync(10000);
+        await Tools.DelayAsync(20000);
         this.night();
     }
 
