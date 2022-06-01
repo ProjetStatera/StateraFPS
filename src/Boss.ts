@@ -6,7 +6,7 @@ import { Enemy } from "./Enemy";
 export class Boss extends Enemy {
 
     public override async CreateEnemy(position: Vector3): Promise<any> {
-        const result = await SceneLoader.ImportMeshAsync("", "./models/", "boss.glb", this.scene);
+        const result = await SceneLoader.ImportMeshAsync("", "/models/", "boss.glb", this.scene);
         let env = result.meshes[0];
         let allMeshes = env.getChildMeshes();
         env.position = position;
