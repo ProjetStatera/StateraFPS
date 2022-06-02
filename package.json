@@ -4,8 +4,8 @@
   "description": "Games on web 2022",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "stop": "node server.stop.js"
+    "build": "webpack",
+    "start": "webpack-dev-server --port 8080"
   },
   "repository": {
     "type": "git",

@@ -60,12 +60,12 @@ export class Enemy {
             autoplay: false,
             volume: 0.2
           });
-        this._hurtSound = new Sound("hurtsound","sounds/hurt.mp3",this.scene,{
+        this._hurtSound = new Sound("hurtsound","sounds/hurt.mp3",this.scene,null,{
             loop: false,
             autoplay: false,
             volume: 0.7
           });
-        this._screamSound = new Sound("screamsound","sounds/scream.mp3",this.scene,{
+        this._screamSound = new Sound("screamsound","sounds/scream.mp3",this.scene,null,{
             loop: false,
             autoplay: false,
             volume: 0.2
