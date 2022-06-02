@@ -314,7 +314,7 @@ class App {
         this._boss.changePosition();
         this.enableEnemies();
         await Tools.DelayAsync(this._cooldown);
-        this._cooldown += 10;
+        this._cooldown += 30000;
         this.day();
     }
 
