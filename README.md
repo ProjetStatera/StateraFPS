@@ -2,7 +2,7 @@
 
 Hello, 
 
-We are Ben-Jabria and Valentin Charles, we're 21 ans 20 years old
+We are Ben Jabria Adem and Valentin Charles, we're 21 ans 20 years old
 and we decided to do this project for many reasons.
 Firstly, we are passionated by the development domain, so learning
 a new language and make a game were more than a choice to us, we were
@@ -47,19 +47,26 @@ Below you can find the ways to install it and to launch it,
 and for the Keys Guide, you can check on ("Touches_explication.pdf").
 
 
+
+
+
+Watch the presentation here :
+
 https://youtu.be/8IhvDRFG9J0
 
+
+Play the game directly :
+
+ https://staterafps.herokuapp.com/
 
 
 
 <!-- GETTING STARTED -->
 ### Prerequisites
 
-Install dependencies via:
+Or download the repository and install dependencies via:
   ```sh
   npm install
-  npm install --save @babylonjs/core @babylonjs/materials
- 
   ```
 Build 
   ```sh
