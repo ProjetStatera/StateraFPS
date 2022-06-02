@@ -175,7 +175,7 @@ export class FPSController {
      * create the camera which represents the player (FPS)
      */
     private createController(): void {
-        this._camera = new FreeCamera("camera", new Vector3(0, 3, 0), this._scene);
+        this._camera = new FreeCamera("camera", new Vector3(4, 3, 10), this._scene);
         this._camera.attachControl(this._canvas, true);
 
         //hitbox + gravity
@@ -627,8 +627,8 @@ export class FPSController {
         //shooting part
         this._cooldown_fire = 0.2;
         this._damage = 15;
-        FPSController._ammo = 50;
-        FPSController._max_ammo = 50;
+        FPSController._ammo = 10;
+        FPSController._max_ammo = 10;
 
         return {
             mesh: env as Mesh,
