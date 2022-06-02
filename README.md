@@ -22,7 +22,7 @@ Adding to that, we started the project by actually thinking to a story that woul
 (which is by the way in the "Lettre_explication.pdf").
 
 What about the game and how is it played ?
-
+²²
 It's a FPS survival in which u must have a good aim to survive,
 in fact, you have infinite ammo and the rounds goes as far as you
 can reach. you first start with a pistol the first rounds, and then, we'll you'll discover it by youself ! I don't wanna spoil you :)
@@ -51,8 +51,6 @@ and for the Keys Guide, you can check on ("Touches_explication.pdf").
 
 
 
-<img align="left" src="/public/sprites/screen.png" alt="screen" width="360" height="180">
-<img src="/public/sprites/screen2.png" alt="screen" width="360" height="180">
 
 <!-- GETTING STARTED -->
 ### Prerequisites
