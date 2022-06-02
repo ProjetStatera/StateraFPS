@@ -39,7 +39,7 @@ export class FPSController {
 
     //headLight
     private _light: SpotLight;
-    private _gun_Flash: SpotLight;
+    //private _gun_Flash: SpotLight;
 
     // animation trackers
     private _currentAnim: AnimationGroup = null;
@@ -89,7 +89,6 @@ export class FPSController {
         this.createController();
         this.keyboardInput();
         this.setupFlashlight();
-        this.setUpGunMuzzleFlash();
         this.setupAllMeshes();
         this.update();
         this.i = 0;
@@ -175,7 +174,7 @@ export class FPSController {
      * create the camera which represents the player (FPS)
      */
     private createController(): void {
-        this._camera = new FreeCamera("camera", new Vector3(0, 3, 0), this._scene);
+        this._camera = new FreeCamera("camera", new Vector3(5, 3, 4), this._scene);
         this._camera.attachControl(this._canvas, true);
 
         //hitbox + gravity
@@ -421,7 +420,7 @@ export class FPSController {
         return v;
     }
 
-    private setUpGunMuzzleFlash()
+    /*private setUpGunMuzzleFlash()
     {
         this._gun_Flash = new SpotLight("spotLight", new Vector3(0, 1, 0), new Vector3(0, 0, 1), 2 / 3, 2, this._scene);
         this._gun_Flash.parent = this._camera;
@@ -432,7 +431,7 @@ export class FPSController {
         this._gun_Flash.intensity = 20000;
         await Tools.DelayAsync(50);
         this._gun_Flash.intensity=0;
-    }
+    }*/
 
     //left click to fire, right click to aim, ammo managed bellow too
     private fire() {
@@ -440,7 +439,7 @@ export class FPSController {
         var origin = this._camera.position;
         if (FPSController._ammo > 0) {
             FPSController._ammo -= 1;
-            this.gunMuzzleFlash();
+            //this.gunMuzzleFlash();
             this._weaponSound.play(); //sound
             var forward = new Vector3(0, 0, 1);
             forward = this.vecToLocal(forward, this._camera);
@@ -627,8 +626,8 @@ export class FPSController {
         //shooting part
         this._cooldown_fire = 0.2;
         this._damage = 15;
-        FPSController._ammo = 50;
-        FPSController._max_ammo = 50;
+        FPSController._ammo = 10;
+        FPSController._max_ammo = 10;
 
         return {
             mesh: env as Mesh,
