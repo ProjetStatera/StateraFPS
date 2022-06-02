@@ -288,6 +288,7 @@ class App {
 
     // launch the day and its functions, checks..
     public async day() {
+        this.disableEnemies();
         if(!this._isdead){
             this._currentRound += 1;    
         }
@@ -297,7 +298,6 @@ class App {
             this._fps.changeWeapon();
             PlayerHealth._current_Health = 200;
         }
-        this.disableEnemies();
         this._isdead = false;
         await Tools.DelayAsync(20000);
         this.night();
