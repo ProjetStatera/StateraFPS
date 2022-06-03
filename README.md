@@ -68,15 +68,12 @@ Or download the repository and install dependencies via:
   ```sh
   npm install
   ```
-Build 
-  ```sh
-  npm run build
-  ```
+
 Build typescript and open web page via
   ```sh
   npm run start
   ``` 
-  then connect to localhost:8080 from a web browser.
+  then connect to localhost:3000 from a web browser.
 
 
 
